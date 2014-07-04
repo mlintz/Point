@@ -19,6 +19,8 @@
 		C8C42F72196745A80041645E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8C42F5A196745A80041645E /* UIKit.framework */; };
 		C8C42F7A196745A80041645E /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = C8C42F78196745A80041645E /* InfoPlist.strings */; };
 		C8C42F7C196745A80041645E /* PointTests.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C42F7B196745A80041645E /* PointTests.m */; };
+		C8C42F89196746C10041645E /* PTATextEditorView.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C42F88196746C10041645E /* PTATextEditorView.m */; };
+		C8C42F90196756410041645E /* UIGestureRecognizer+PTAUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C42F8F196756410041645E /* UIGestureRecognizer+PTAUtil.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +50,10 @@
 		C8C42F77196745A80041645E /* PointTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "PointTests-Info.plist"; sourceTree = "<group>"; };
 		C8C42F79196745A80041645E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		C8C42F7B196745A80041645E /* PointTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PointTests.m; sourceTree = "<group>"; };
+		C8C42F87196746C10041645E /* PTATextEditorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PTATextEditorView.h; sourceTree = "<group>"; };
+		C8C42F88196746C10041645E /* PTATextEditorView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PTATextEditorView.m; sourceTree = "<group>"; };
+		C8C42F8E196756410041645E /* UIGestureRecognizer+PTAUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIGestureRecognizer+PTAUtil.h"; sourceTree = "<group>"; };
+		C8C42F8F196756410041645E /* UIGestureRecognizer+PTAUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIGestureRecognizer+PTAUtil.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,9 +113,11 @@
 		C8C42F5C196745A80041645E /* Point */ = {
 			isa = PBXGroup;
 			children = (
+				C8C42F85196745B70041645E /* Experimental */,
 				C8C42F65196745A80041645E /* PTAAppDelegate.h */,
 				C8C42F66196745A80041645E /* PTAAppDelegate.m */,
 				C8C42F68196745A80041645E /* Images.xcassets */,
+				C8C42F8A196755F00041645E /* Common */,
 				C8C42F5D196745A80041645E /* Supporting Files */,
 			);
 			path = Point;
@@ -142,6 +150,32 @@
 				C8C42F78196745A80041645E /* InfoPlist.strings */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		C8C42F85196745B70041645E /* Experimental */ = {
+			isa = PBXGroup;
+			children = (
+				C8C42F86196745D00041645E /* TextView */,
+			);
+			name = Experimental;
+			sourceTree = "<group>";
+		};
+		C8C42F86196745D00041645E /* TextView */ = {
+			isa = PBXGroup;
+			children = (
+				C8C42F87196746C10041645E /* PTATextEditorView.h */,
+				C8C42F88196746C10041645E /* PTATextEditorView.m */,
+			);
+			name = TextView;
+			sourceTree = "<group>";
+		};
+		C8C42F8A196755F00041645E /* Common */ = {
+			isa = PBXGroup;
+			children = (
+				C8C42F8E196756410041645E /* UIGestureRecognizer+PTAUtil.h */,
+				C8C42F8F196756410041645E /* UIGestureRecognizer+PTAUtil.m */,
+			);
+			name = Common;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -242,6 +276,8 @@
 			files = (
 				C8C42F67196745A80041645E /* PTAAppDelegate.m in Sources */,
 				C8C42F63196745A80041645E /* main.m in Sources */,
+				C8C42F89196746C10041645E /* PTATextEditorView.m in Sources */,
+				C8C42F90196756410041645E /* UIGestureRecognizer+PTAUtil.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
