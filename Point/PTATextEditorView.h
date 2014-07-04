@@ -11,6 +11,8 @@
 
 - (NSString *)textEditorView:(PTATextEditorView *)view
     selectionStringForCharacterIndex:(NSUInteger)characterIndex;
+- (BOOL)textEditorView:(PTATextEditorView *)view
+    shouldStartSelectionAtCharacterIndex:(NSUInteger)characterIndex;
 
 @end
 

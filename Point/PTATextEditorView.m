@@ -75,6 +75,8 @@ static CGFloat const kHorizontalPadding = 16.f;
                                      fractionOfDistanceBetweenInsertionPoints:0];
   NSString *selectionString = [_delegate textEditorView:self
                        selectionStringForCharacterIndex:characterIndex];
+  NSLog(@"touchLocation = %@", NSStringFromCGPoint(touchLocation));
+  NSLog(@"characterIndex = %d", characterIndex);
   NSLog(@"selectionString = \"%@\"", selectionString);
 }
 
@@ -87,7 +89,11 @@ static CGFloat const kHorizontalPadding = 16.f;
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
   if (gestureRecognizer == _longPressRecognizer) {
-    return YES;
+    CGPoint touchLocation = [_longPressRecognizer locationInView:_textView];
+    NSUInteger characterIndex = [_textView.layoutManager characterIndexForPoint:touchLocation
+                                                                inTextContainer:_textView.textContainer
+                                       fractionOfDistanceBetweenInsertionPoints:0];
+    return [_delegate textEditorView:self shouldStartSelectionAtCharacterIndex:characterIndex];
   }
   if (gestureRecognizer == _panGestureRecognizer) {
     return _longPressRecognizer.isActive;

@@ -8,6 +8,8 @@
 
 #import "PTAAppDelegate.h"
 
+#import "PTATextEditorViewController.h"
+
 @implementation PTAAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
@@ -15,6 +17,7 @@
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
     self.window.backgroundColor = [UIColor whiteColor];
+    self.window.rootViewController = [[PTATextEditorViewController alloc] init];
     [self.window makeKeyAndVisible];
     return YES;
 }
