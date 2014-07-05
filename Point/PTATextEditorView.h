@@ -9,8 +9,8 @@
 
 @protocol PTATextEditorDelegateProtocol <NSObject>
 
-- (NSString *)textEditorView:(PTATextEditorView *)view
-    selectionStringForCharacterIndex:(NSUInteger)characterIndex;
+- (NSRange)textEditorView:(PTATextEditorView *)view
+    selectionRangeForCharacterIndex:(NSUInteger)characterIndex;
 - (BOOL)textEditorView:(PTATextEditorView *)view
     shouldStartSelectionAtCharacterIndex:(NSUInteger)characterIndex;
 

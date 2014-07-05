@@ -8,8 +8,6 @@
 
 #import "PTATextEditorView.h"
 
-#import "UIGestureRecognizer+PTAUtil.h"
-
 static NSString *const kFontName = @"CourierNewPSMT";
 static CGFloat const kFontSize = 16.f;
 
@@ -73,11 +71,11 @@ static CGFloat const kHorizontalPadding = 16.f;
   NSUInteger characterIndex = [_textView.layoutManager characterIndexForPoint:touchLocation
                                                               inTextContainer:_textView.textContainer
                                      fractionOfDistanceBetweenInsertionPoints:0];
-  NSString *selectionString = [_delegate textEditorView:self
-                       selectionStringForCharacterIndex:characterIndex];
+  NSRange selectionRange = [_delegate textEditorView:self
+                     selectionRangeForCharacterIndex:characterIndex];
   NSLog(@"touchLocation = %@", NSStringFromCGPoint(touchLocation));
   NSLog(@"characterIndex = %d", characterIndex);
-  NSLog(@"selectionString = \"%@\"", selectionString);
+  NSLog(@"selectionString = \"%@\"", [self.text substringWithRange:selectionRange]);
 }
 
 - (void)handlePan:(UIPanGestureRecognizer *)panRecognizer {

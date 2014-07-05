@@ -13,6 +13,7 @@
 
 + (instancetype)parserForString:(NSString *)string;
 
+- (BOOL)isCharacterIndexInNewlineOnlyLine:(NSUInteger)characterIndex;
 // Asserts if characterIndex is in a line containing only newline characters
 - (NSRange)selectionRangeForCharacterIndex:(NSUInteger)characterIndex;
 

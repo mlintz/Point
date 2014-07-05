@@ -7,5 +7,4 @@
 //
 
 @interface PTATextEditorViewController : UIViewController
-
 @end

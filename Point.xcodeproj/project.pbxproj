@@ -20,9 +20,9 @@
 		C8C42F7A196745A80041645E /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = C8C42F78196745A80041645E /* InfoPlist.strings */; };
 		C8C42F7C196745A80041645E /* PointTests.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C42F7B196745A80041645E /* PointTests.m */; };
 		C8C42F89196746C10041645E /* PTATextEditorView.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C42F88196746C10041645E /* PTATextEditorView.m */; };
-		C8C42F90196756410041645E /* UIGestureRecognizer+PTAUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C42F8F196756410041645E /* UIGestureRecognizer+PTAUtil.m */; };
 		C8C42F93196758220041645E /* PTATextEditorViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C42F92196758220041645E /* PTATextEditorViewController.m */; };
 		C8C42F96196761B90041645E /* PTAParser.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C42F95196761B90041645E /* PTAParser.m */; };
+		C8C42F9C1968A0560041645E /* PTACategories.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C42F9B1968A0560041645E /* PTACategories.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,12 +54,12 @@
 		C8C42F7B196745A80041645E /* PointTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PointTests.m; sourceTree = "<group>"; };
 		C8C42F87196746C10041645E /* PTATextEditorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PTATextEditorView.h; sourceTree = "<group>"; };
 		C8C42F88196746C10041645E /* PTATextEditorView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PTATextEditorView.m; sourceTree = "<group>"; };
-		C8C42F8E196756410041645E /* UIGestureRecognizer+PTAUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIGestureRecognizer+PTAUtil.h"; sourceTree = "<group>"; };
-		C8C42F8F196756410041645E /* UIGestureRecognizer+PTAUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIGestureRecognizer+PTAUtil.m"; sourceTree = "<group>"; };
 		C8C42F91196758220041645E /* PTATextEditorViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PTATextEditorViewController.h; sourceTree = "<group>"; };
 		C8C42F92196758220041645E /* PTATextEditorViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PTATextEditorViewController.m; sourceTree = "<group>"; };
 		C8C42F94196761B90041645E /* PTAParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PTAParser.h; sourceTree = "<group>"; };
 		C8C42F95196761B90041645E /* PTAParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PTAParser.m; sourceTree = "<group>"; };
+		C8C42F9A1968A0560041645E /* PTACategories.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PTACategories.h; sourceTree = "<group>"; };
+		C8C42F9B1968A0560041645E /* PTACategories.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PTACategories.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -182,8 +182,8 @@
 		C8C42F8A196755F00041645E /* Common */ = {
 			isa = PBXGroup;
 			children = (
-				C8C42F8E196756410041645E /* UIGestureRecognizer+PTAUtil.h */,
-				C8C42F8F196756410041645E /* UIGestureRecognizer+PTAUtil.m */,
+				C8C42F9A1968A0560041645E /* PTACategories.h */,
+				C8C42F9B1968A0560041645E /* PTACategories.m */,
 			);
 			name = Common;
 			sourceTree = "<group>";
@@ -289,7 +289,7 @@
 				C8C42F93196758220041645E /* PTATextEditorViewController.m in Sources */,
 				C8C42F63196745A80041645E /* main.m in Sources */,
 				C8C42F89196746C10041645E /* PTATextEditorView.m in Sources */,
-				C8C42F90196756410041645E /* UIGestureRecognizer+PTAUtil.m in Sources */,
+				C8C42F9C1968A0560041645E /* PTACategories.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -357,6 +357,7 @@
 					"$(inherited)",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -390,6 +391,7 @@
 				COPY_PHASE_STRIP = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
