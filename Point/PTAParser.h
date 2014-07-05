@@ -6,7 +6,6 @@
 //  Copyright (c) 2014 Mikey Lintz. All rights reserved.
 //
 
-// NOT THREAD SAFE!
 @interface PTAParser : NSObject
 
 @property(nonatomic, readonly) NSString *string;
