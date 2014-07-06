@@ -13,3 +13,7 @@
 @interface NSString (PTAUtil)
 - (BOOL)containsNonWhitespaceCharacters;
 @end
+
+@interface UIView (PTAUtil)
+- (UIImage *)snapshotCroppedToRect:(CGRect)rect;
+@end

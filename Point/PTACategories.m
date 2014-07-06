@@ -24,3 +24,18 @@
 }
 
 @end
+
+@implementation UIView (PTAUtil)
+
+- (UIImage *)snapshotCroppedToRect:(CGRect)rect {
+  UIGraphicsBeginImageContextWithOptions(rect.size, NO, 0.f);
+  CGContextRef context = UIGraphicsGetCurrentContext();
+
+  CGContextTranslateCTM(context, -1 * CGRectGetMinX(rect), -1 * CGRectGetMinY(rect));
+  [[self layer] renderInContext:context];
+  UIImage *snapshot = UIGraphicsGetImageFromCurrentImageContext();
+  UIGraphicsEndImageContext();
+  return snapshot;
+}
+
+@end
