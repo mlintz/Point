@@ -35,7 +35,9 @@ static CGFloat const kHorizontalPadding = 16.f;
 
     _textView = [[UITextView alloc] init];
     _textView.font = [UIFont fontWithName:kFontName size:kFontSize];
-    _textView.editable = NO;
+//    _textView.editable = NO;
+//    _textView.userInteractionEnabled = NO;
+    _textView.selectable = NO;
     [self addSubview:_textView];
 
     _longPressRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self
