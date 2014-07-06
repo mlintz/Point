@@ -6,8 +6,8 @@
 //  Copyright (c) 2014 Mikey Lintz. All rights reserved.
 //
 
-extern CGPoint PTAInvertedPoint(CGPoint point);
-extern CGPoint PTAAddPoints(CGPoint point1, CGPoint point2);
+extern CGPoint PTAPointInvert(CGPoint point);
+extern CGPoint PTAPointAdd(CGPoint point1, CGPoint point2);
 
 @interface UIGestureRecognizer (PTAUtil)
 @property(nonatomic, readonly) BOOL isActive;

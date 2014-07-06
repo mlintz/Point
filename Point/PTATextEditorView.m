@@ -16,15 +16,22 @@ static CGFloat const kFontSize = 16.f;
 static CGFloat const kVerticalPadding = 16.f;
 static CGFloat const kHorizontalPadding = 16.f;
 
+static NSString *const kDecayAnimationKey = @"com.mikey.PTATextEditorView.decayAnimation";
+static NSString *const kSpringAnimationKey = @"com.mikey.PTATextEditorView.springAnimation";
+
+
 @interface PTATextEditorView ()<UIGestureRecognizerDelegate>
 @end
 
 @implementation PTATextEditorView {
   UITextView *_textView;
   UILongPressGestureRecognizer *_longPressRecognizer;
+  UIPanGestureRecognizer *_panRecognizer;
   UILabel *_lockLabel;
   UISwitch *_lockSwitch;
   UIImageView *_dragView;
+  CGPoint _initialDragCenter;
+  BOOL _isDragAndDropActive;
 }
 
 @synthesize delegate = _delegate;
@@ -36,17 +43,17 @@ static CGFloat const kHorizontalPadding = 16.f;
 
     _textView = [[UITextView alloc] init];
     _textView.font = [UIFont fontWithName:kFontName size:kFontSize];
-    _textView.selectable = NO;
     [self addSubview:_textView];
 
     _longPressRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self
                                                                          action:@selector(handleLongPress:)];
     _longPressRecognizer.delegate = self;
-    [_textView addGestureRecognizer:_longPressRecognizer];
+    [_textView.panGestureRecognizer requireGestureRecognizerToFail:_longPressRecognizer];
+    [self addGestureRecognizer:_longPressRecognizer];
 
-    _dragView = [[UIImageView alloc] init];
-    _dragView.hidden = YES;
-    [self addSubview:_dragView];
+    _panRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)];
+    _panRecognizer.delegate = self;
+    [self addGestureRecognizer:_panRecognizer];
 
     _lockLabel = [[UILabel alloc] init];
     _lockLabel.font = [UIFont systemFontOfSize:16];
@@ -55,7 +62,14 @@ static CGFloat const kHorizontalPadding = 16.f;
     [self addSubview:_lockLabel];
 
     _lockSwitch = [[UISwitch alloc] init];
+    [_lockSwitch addTarget:self action:@selector(handleSwitch:) forControlEvents:UIControlEventValueChanged];
     [self addSubview:_lockSwitch];
+
+    _dragView = [[UIImageView alloc] init];
+    _dragView.hidden = YES;
+    [self addSubview:_dragView];
+
+    [self updateTextView];
   }
   return self;
 }
@@ -66,6 +80,15 @@ static CGFloat const kHorizontalPadding = 16.f;
 
 - (void)setText:(NSString *)text {
   _textView.text = text;
+}
+
+#pragma mark - UIResponder
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+  [super touchesBegan:touches withEvent:event];
+  if ([_textView canResignFirstResponder]) {
+    [_textView resignFirstResponder];
+  }
 }
 
 #pragma mark - UIView
@@ -105,9 +128,12 @@ static CGFloat const kHorizontalPadding = 16.f;
 
   NSAssert(_delegate, @"Delegate cannot be nil.");
   NSAssert(longPressRecognizer == _longPressRecognizer, @"Expecting _longPressRecognizer");
+  [self updateTextView];
 
   switch (longPressRecognizer.state) {
     case UIGestureRecognizerStateBegan: {
+      [_dragView pop_removeAllAnimations];
+      _isDragAndDropActive = NO;
       CGPoint touchLocation = [longPressRecognizer locationInView:_textView];
       NSUInteger characterIndex = [_textView.layoutManager characterIndexForPoint:touchLocation
                                                                   inTextContainer:_textView.textContainer
@@ -132,12 +158,39 @@ static CGFloat const kHorizontalPadding = 16.f;
       _dragView.hidden = NO;
       _dragView.frame = [self convertRect:boundingBox fromView:_textView];
       
+      
       NSLog(@"selectionString = \"%@\"", [self.text substringWithRange:selectionCharacterRange]);
       NSLog(@"used rect = %@", NSStringFromCGRect([_textView.layoutManager usedRectForTextContainer:_textView.textContainer]));
       break;
     }
     case UIGestureRecognizerStateEnded:
     case UIGestureRecognizerStateCancelled: {
+      if (!_isDragAndDropActive) {
+        _dragView.hidden = YES;
+      }
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+- (void)handlePan:(UIPanGestureRecognizer *)panRecognizer {
+  switch (panRecognizer.state) {
+    case UIGestureRecognizerStateBegan: {
+      _isDragAndDropActive = YES;
+      _initialDragCenter = _dragView.center;
+      break;
+    }
+    case UIGestureRecognizerStateChanged: {
+      _dragView.center = PTAPointAdd([panRecognizer translationInView:self], _initialDragCenter);
+      break;
+    }
+    case UIGestureRecognizerStateEnded:
+    case UIGestureRecognizerStateCancelled: {
+      POPDecayAnimation *decayAnimation = [POPDecayAnimation animationWithPropertyNamed:kPOPLayerPosition];
+      decayAnimation.velocity = [NSValue valueWithCGPoint:[panRecognizer velocityInView:self]];
+      [_dragView pop_addAnimation:decayAnimation forKey:kDecayAnimationKey];
       break;
     }
     default:
@@ -146,17 +199,18 @@ static CGFloat const kHorizontalPadding = 16.f;
 }
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
-  if (gestureRecognizer == _longPressRecognizer) {
+  NSAssert(gestureRecognizer == _longPressRecognizer || gestureRecognizer == _panRecognizer, @"Unknown gestureRecognizer: %@", gestureRecognizer);
+
+  if (gestureRecognizer == _panRecognizer) {
+    return _longPressRecognizer.isActive;
+  }
+  if (gestureRecognizer == _longPressRecognizer && [self isLongPressEnabled]) {
     CGPoint touchLocation = [_longPressRecognizer locationInView:_textView];
     NSUInteger characterIndex = [_textView.layoutManager characterIndexForPoint:touchLocation
                                                                 inTextContainer:_textView.textContainer
                                        fractionOfDistanceBetweenInsertionPoints:0];
     return [_delegate textEditorView:self shouldStartSelectionAtCharacterIndex:characterIndex];
   }
-  if (gestureRecognizer == _panGestureRecognizer) {
-    return _longPressRecognizer.isActive;
-  }
-  NSAssert(NO, @"Unknown gestureRecognizer: %@", gestureRecognizer);
   return NO;
 }
 
@@ -165,12 +219,31 @@ static CGFloat const kHorizontalPadding = 16.f;
   if (gestureRecognizer == _longPressRecognizer || otherRecognizer == _longPressRecognizer) {
     return YES;
   }
-  if (gestureRecognizer == _panGestureRecognizer || otherRecognizer == _panGestureRecognizer) {
+  if (gestureRecognizer == _panRecognizer || otherRecognizer == _panRecognizer) {
     return YES;
   }
+
   return NO;
 }
 
+#pragma mark - Target-action
+
+- (void)handleSwitch:(UISwitch *)switchView {
+  [self updateTextView];
+}
+
 #pragma mark - Private
+
+- (BOOL)isLongPressEnabled {
+  return _lockSwitch.isOn;
+}
+
+- (void)updateTextView {
+  _textView.selectable = !_lockSwitch.isOn;
+  _textView.editable = !_lockSwitch.isOn;
+  _textView.textColor = _lockSwitch.isOn ? [UIColor lightGrayColor] : [UIColor darkTextColor];
+//  [_textView setScrollEnabled:!_longPressRecognizer.isActive];
+//  _textView.userInteractionEnabled = !_longPressRecognizer.isActive;
+}
 
 @end

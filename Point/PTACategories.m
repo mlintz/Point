@@ -8,11 +8,11 @@
 
 #import "PTACategories.h"
 
-CGPoint PTAInvertedPoint(CGPoint point) {
+CGPoint PTAPointInvert(CGPoint point) {
   return CGPointMake(-1 * point.x, -1 * point.y);
 }
 
-extern CGPoint PTAAddPoints(CGPoint point1, CGPoint point2) {
+CGPoint PTAPointAdd(CGPoint point1, CGPoint point2) {
   return CGPointMake(point1.x + point2.x, point1.y + point2.y);
 }
 
