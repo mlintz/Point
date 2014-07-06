@@ -23,6 +23,8 @@ static CGFloat const kHorizontalPadding = 16.f;
   UITextView *_textView;
   UILongPressGestureRecognizer *_longPressRecognizer;
   UIPanGestureRecognizer *_panGestureRecognizer;
+  UILabel *_lockLabel;
+  UISwitch *_lockSwitch;
   UIImageView *_dragView;
 }
 
@@ -54,6 +56,15 @@ static CGFloat const kHorizontalPadding = 16.f;
     _dragView = [[UIImageView alloc] init];
     _dragView.hidden = YES;
     [self addSubview:_dragView];
+
+    _lockLabel = [[UILabel alloc] init];
+    _lockLabel.font = [UIFont systemFontOfSize:16];
+    _lockLabel.textColor = [UIColor whiteColor];
+    _lockLabel.text = @"Lock";
+    [self addSubview:_lockLabel];
+
+    _lockSwitch = [[UISwitch alloc] init];
+    [self addSubview:_lockSwitch];
   }
   return self;
 }
@@ -70,8 +81,30 @@ static CGFloat const kHorizontalPadding = 16.f;
 
 - (void)layoutSubviews {
   [super layoutSubviews];
+  CGRect dummyRect;
 
-  _textView.frame = CGRectInset(self.bounds, kHorizontalPadding, kVerticalPadding);
+  CGRect contentRect = CGRectInset(self.bounds, kHorizontalPadding, kVerticalPadding);
+
+  [_lockSwitch sizeToFit];
+  [_lockLabel sizeToFit];
+  CGFloat footerHeight = MAX(CGRectGetHeight(_lockLabel.bounds), CGRectGetHeight(_lockSwitch.bounds)) + kVerticalPadding;
+  
+  CGRect footerRect;
+  CGRect textViewRect;
+  CGRectDivide(contentRect, &footerRect, &textViewRect, footerHeight, CGRectMaxYEdge);
+
+  _textView.frame = CGRectIntegral(textViewRect);
+
+  CGRectDivide(footerRect, &dummyRect, &footerRect, kVerticalPadding, CGRectMinYEdge);
+
+  CGRect labelRect;
+  CGRect switchRect;
+  CGRectDivide(footerRect, &labelRect, &switchRect, CGRectGetWidth(_lockLabel.bounds), CGRectMinXEdge);
+
+  _lockLabel.frame = CGRectIntegral(labelRect);
+  
+  CGRectDivide(switchRect, &switchRect, &dummyRect, CGRectGetWidth(_lockSwitch.bounds), CGRectMinXEdge);
+  _lockSwitch.frame = CGRectIntegral(CGRectOffset(switchRect, kHorizontalPadding, 0));
 }
 
 #pragma mark - Gesture
