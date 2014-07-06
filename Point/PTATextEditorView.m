@@ -8,6 +8,8 @@
 
 #import "PTATextEditorView.h"
 
+#import <POP/POP.h>
+
 static NSString *const kFontName = @"CourierNewPSMT";
 static CGFloat const kFontSize = 16.f;
 
@@ -33,6 +35,7 @@ static CGFloat const kHorizontalPadding = 16.f;
 
     _textView = [[UITextView alloc] init];
     _textView.font = [UIFont fontWithName:kFontName size:kFontSize];
+    _textView.editable = NO;
     [self addSubview:_textView];
 
     _longPressRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self
@@ -115,7 +118,7 @@ static CGFloat const kHorizontalPadding = 16.f;
     case UIGestureRecognizerStateEnded:
     case UIGestureRecognizerStateCancelled: {
       if (!_panGestureRecognizer.isActive) {
-        _dragView.hidden = YES;
+//        _dragView.hidden = YES;
       }
       break;
     }
@@ -139,7 +142,10 @@ static CGFloat const kHorizontalPadding = 16.f;
       break;
     }
     case UIGestureRecognizerStateEnded: {
-      _dragView.transform = CGAffineTransformIdentity;
+//      _dragView.transform = CGAffineTransformIdentity;
+      POPDecayAnimation *decayAnimationX = [POPDecayAnimation animationWithPropertyNamed:kPOPLayerTranslationX];
+      [decayAnimationX setVelocity:@([panRecognizer velocityInView:self].x)];
+      [_dragView.layer pop_addAnimation:decayAnimationX forKey:@"decayX"];
       break;
     }
     default:

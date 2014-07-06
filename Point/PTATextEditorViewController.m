@@ -24,7 +24,7 @@
 - (void)loadView {
   _textEditorView = [[PTATextEditorView alloc] init];
   _textEditorView.delegate = self;
-  _textEditorView.text = @"foo";
+  _textEditorView.text = @"foo\nioapuwfopausdfp\nq47856989wieyuaoisdf\nkajshdflajhsdflkhasvklhakjsyroiuhfljzhsdlkfhoiuesryzoishdfysoi\nq763458796opoqiwepoiu\n\n\n\n\niawyerioaoiusydf\n.,zjsioyihiyewoiha\n\n\n\njarht\niowuer\n7685324\n08er8-8w\n\n\n";
   self.view = _textEditorView;
 }
 
