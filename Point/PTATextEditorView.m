@@ -22,7 +22,6 @@ static CGFloat const kHorizontalPadding = 16.f;
 @implementation PTATextEditorView {
   UITextView *_textView;
   UILongPressGestureRecognizer *_longPressRecognizer;
-  UIPanGestureRecognizer *_panGestureRecognizer;
   UILabel *_lockLabel;
   UISwitch *_lockSwitch;
   UIImageView *_dragView;
@@ -37,21 +36,13 @@ static CGFloat const kHorizontalPadding = 16.f;
 
     _textView = [[UITextView alloc] init];
     _textView.font = [UIFont fontWithName:kFontName size:kFontSize];
-//    _textView.editable = NO;
-//    _textView.userInteractionEnabled = NO;
     _textView.selectable = NO;
     [self addSubview:_textView];
 
     _longPressRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self
                                                                          action:@selector(handleLongPress:)];
-//    _longPressRecognizer.cancelsTouchesInView = NO;
     _longPressRecognizer.delegate = self;
     [_textView addGestureRecognizer:_longPressRecognizer];
-
-    _panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)];
-//    _panGestureRecognizer.cancelsTouchesInView = NO;
-    _panGestureRecognizer.delegate = self;
-    [_textView addGestureRecognizer:_panGestureRecognizer];
 
     _dragView = [[UIImageView alloc] init];
     _dragView.hidden = YES;
@@ -131,12 +122,9 @@ static CGFloat const kHorizontalPadding = 16.f;
       boundingBox = CGRectOffset(boundingBox, _textView.textContainerInset.left, _textView.textContainerInset.top);
       
       UIColor *backgroundColor = _textView.backgroundColor;
-      //  UIColor *textColor = _textView.textColor;
       _textView.backgroundColor = [UIColor clearColor];
-      //  _textView.textColor = [UIColor redColor];
       UIImage *snapshot = [_textView snapshotCroppedToRect:boundingBox];
       _textView.backgroundColor = backgroundColor;
-      //  _textView.textColor = textColor;
       
       _dragView.image = snapshot;
       _dragView.backgroundColor = [UIColor purpleColor];
@@ -144,49 +132,17 @@ static CGFloat const kHorizontalPadding = 16.f;
       _dragView.hidden = NO;
       _dragView.frame = [self convertRect:boundingBox fromView:_textView];
       
-      //  NSLog(@"touchLocation = %@", NSStringFromCGPoint(touchLocation));
-      //  NSLog(@"characterIndex = %d", characterIndex);
       NSLog(@"selectionString = \"%@\"", [self.text substringWithRange:selectionCharacterRange]);
       NSLog(@"used rect = %@", NSStringFromCGRect([_textView.layoutManager usedRectForTextContainer:_textView.textContainer]));
       break;
     }
     case UIGestureRecognizerStateEnded:
     case UIGestureRecognizerStateCancelled: {
-      if (!_panGestureRecognizer.isActive) {
-//        _dragView.hidden = YES;
-      }
       break;
     }
     default:
       break;
   }
-}
-
-- (void)handlePan:(UIPanGestureRecognizer *)panRecognizer {
-  NSAssert(panRecognizer == _panGestureRecognizer, @"Expecting _panGestureRecognizer");
-
-  switch (panRecognizer.state) {
-//    case UIGestureRecognizerStateBegan: {
-//      _initialDragPosition = [panRecognizer locationInView:self];
-//      break;
-//    }
-    case UIGestureRecognizerStateChanged: {
-      CGPoint translation = [panRecognizer translationInView:self];
-      CGAffineTransform transform = CGAffineTransformMakeTranslation(translation.x, translation.y);
-      _dragView.transform = transform;
-      break;
-    }
-    case UIGestureRecognizerStateEnded: {
-//      _dragView.transform = CGAffineTransformIdentity;
-      POPDecayAnimation *decayAnimationX = [POPDecayAnimation animationWithPropertyNamed:kPOPLayerTranslationX];
-      [decayAnimationX setVelocity:@([panRecognizer velocityInView:self].x)];
-      [_dragView.layer pop_addAnimation:decayAnimationX forKey:@"decayX"];
-      break;
-    }
-    default:
-      break;
-}
-
 }
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
