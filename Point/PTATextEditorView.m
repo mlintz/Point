@@ -19,7 +19,6 @@ static CGFloat const kHorizontalPadding = 16.f;
 static NSString *const kDecayAnimationKey = @"com.mikey.PTATextEditorView.decayAnimation";
 static NSString *const kSpringAnimationKey = @"com.mikey.PTATextEditorView.springAnimation";
 
-
 @interface PTATextEditorView ()<UIGestureRecognizerDelegate>
 @end
 
@@ -32,6 +31,7 @@ static NSString *const kSpringAnimationKey = @"com.mikey.PTATextEditorView.sprin
   UIImageView *_dragView;
   CGPoint _initialDragCenter;
   BOOL _isDragAndDropActive;
+  CGRect _originalTextFrame;
 }
 
 @synthesize delegate = _delegate;
@@ -180,6 +180,7 @@ static NSString *const kSpringAnimationKey = @"com.mikey.PTATextEditorView.sprin
     case UIGestureRecognizerStateBegan: {
       _isDragAndDropActive = YES;
       _initialDragCenter = _dragView.center;
+      _originalTextFrame = _dragView.frame;
       break;
     }
     case UIGestureRecognizerStateChanged: {
@@ -188,8 +189,21 @@ static NSString *const kSpringAnimationKey = @"com.mikey.PTATextEditorView.sprin
     }
     case UIGestureRecognizerStateEnded:
     case UIGestureRecognizerStateCancelled: {
-      POPDecayAnimation *decayAnimation = [POPDecayAnimation animationWithPropertyNamed:kPOPLayerPosition];
+      POPDecayAnimation *decayAnimation =
+          [POPDecayAnimation animationWithPropertyNamed:kPOPLayerPosition];
       decayAnimation.velocity = [NSValue valueWithCGPoint:[panRecognizer velocityInView:self]];
+      CGFloat decayRate = 0.99f;
+      decayAnimation.deceleration = decayRate;
+      [decayAnimation setCompletionBlock:^(POPAnimation *animation, BOOL completed) {
+        if (CGRectIntersectsRect(self.bounds, _dragView.frame)) {
+          POPSpringAnimation *springAnimation = [POPSpringAnimation animationWithPropertyNamed:kPOPViewFrame];
+          springAnimation.toValue = [NSValue valueWithCGRect:_originalTextFrame];
+          [springAnimation setCompletionBlock:^(POPAnimation *animation, BOOL completed) {
+            _dragView.hidden = YES;
+          }];
+          [_dragView pop_addAnimation:springAnimation forKey:kSpringAnimationKey];
+        }
+      }];
       [_dragView pop_addAnimation:decayAnimation forKey:kDecayAnimationKey];
       break;
     }
