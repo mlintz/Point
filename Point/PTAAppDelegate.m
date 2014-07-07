@@ -8,18 +8,37 @@
 
 #import "PTAAppDelegate.h"
 
-#import "PTATextEditorViewController.h"
+#import <Dropbox/Dropbox.h>
+
+#import "PTAAuthenticationValues.h"
+#import "PTADropboxViewController.h"
 
 @implementation PTAAppDelegate
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
-    self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-    // Override point for customization after application launch.
-    self.window.backgroundColor = [UIColor whiteColor];
-    self.window.rootViewController = [[PTATextEditorViewController alloc] init];
-    [self.window makeKeyAndVisible];
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+  self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+  // Override point for customization after application launch.
+  self.window.backgroundColor = [UIColor whiteColor];
+  self.window.rootViewController = [[PTADropboxViewController alloc] init];
+  [self.window makeKeyAndVisible];
+
+  DBAccountManager *accountManager = [[DBAccountManager alloc] initWithAppKey:[PTAAuthenticationValues key]
+                                                                       secret:[PTAAuthenticationValues secret]];
+  [DBAccountManager setSharedManager:accountManager];
+
+  return YES;
+}
+
+- (BOOL)application:(UIApplication *)application
+            openURL:(NSURL *)url
+  sourceApplication:(NSString *)sourceApplication
+         annotation:(id)annotation {
+  DBAccount *account = [[DBAccountManager sharedManager] handleOpenURL:url];
+  if (account) {
+    NSLog(@"App linked successfully!");
     return YES;
+  }
+  return NO;
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application
@@ -30,7 +49,7 @@
 
 - (void)applicationDidEnterBackground:(UIApplication *)application
 {
-  // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later. 
+  // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
   // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
 }
 

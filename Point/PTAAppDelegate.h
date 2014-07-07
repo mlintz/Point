@@ -6,8 +6,6 @@
 //  Copyright (c) 2014 Mikey Lintz. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
-
 @interface PTAAppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
