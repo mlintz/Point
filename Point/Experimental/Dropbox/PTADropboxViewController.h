@@ -6,5 +6,5 @@
 //  Copyright (c) 2014 Mikey Lintz. All rights reserved.
 //
 
-@interface PTADropboxViewController : UIViewController
+@interface PTADropboxViewController : UIViewController<UITextViewDelegate>
 @end

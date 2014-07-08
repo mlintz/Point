@@ -11,9 +11,12 @@
 #import <Dropbox/Dropbox.h>
 
 static NSString *const kTextViewFont = @"CourierNewPSMT";
+static NSString *const kTextFileName = @"foo.txt";
 
 @implementation PTADropboxViewController {
   NSObject *_observerHandle;
+  UITextView *_textView;
+  DBFile *_file;
 }
 
 - (id)init {
@@ -26,50 +29,61 @@ static NSString *const kTextViewFont = @"CourierNewPSMT";
 
 #pragma mark - UIViewController
 
+- (void)loadView {
+  _textView = [[UITextView alloc] init];
+  _textView.font = [UIFont fontWithName:kTextViewFont size:16];
+  _textView.delegate = self;
+  self.view = _textView;
+}
+
 - (void)viewDidAppear:(BOOL)animated {
   [super viewDidAppear:animated];
   DBAccountManager *accountManager = [DBAccountManager sharedManager];
-  if (accountManager.linkedAccount) {
-    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Success"
-                                                        message:@"Account linked successfully."
-                                                       delegate:nil
-                                              cancelButtonTitle:@"Alright!!"
-                                              otherButtonTitles:nil];
-    [alertView show];
-
-    DBAccount *account = [[DBAccountManager sharedManager] linkedAccount];
-    DBFilesystem *filesystem = [[DBFilesystem alloc] initWithAccount:account];
-    [DBFilesystem setSharedFilesystem:filesystem];
-    __weak PTADropboxViewController *weakSelf = self;
-    [filesystem addObserver:_observerHandle block:^{
-      PTADropboxViewController *strongSelf = weakSelf;
-      [strongSelf listFiles];
-    }];
-
-    NSLog(@"completedFirstSync: %@", filesystem.completedFirstSync ? @"YES" : @"NO");
-  } else {
+  if (!accountManager.linkedAccount) {
     [accountManager linkFromController:self];
   }
+  DBAccount *account = [[DBAccountManager sharedManager] linkedAccount];
+  DBFilesystem *filesystem = [[DBFilesystem alloc] initWithAccount:account];
+  [DBFilesystem setSharedFilesystem:filesystem];
+  __weak id weakSelf = self;
+  [filesystem addObserver:_observerHandle block:^{
+    PTADropboxViewController *strongSelf = weakSelf;
+    [[DBFilesystem sharedFilesystem] removeObserver:strongSelf->_observerHandle];
+    if (!_file) {
+      [strongSelf fillTextData];
+    }
+  }];
 }
 
-- (void)loadView {
-  self.view = [[UIView alloc] init];
-  self.view.backgroundColor = [UIColor whiteColor];
-}
-
-- (void)listFiles {
-  DBPath *path = [DBPath root];
+- (void)fillTextData {
+  DBPath *rootPath = [DBPath root];
   NSError *error;
-  NSArray *fileInfos = [[DBFilesystem sharedFilesystem] listFolder:path error:&error];
-  NSAssert(error == nil, @"Error listing folders.");
-  NSLog(@"Filenames:\n----------");
+  NSArray *fileInfos = [[DBFilesystem sharedFilesystem] listFolder:rootPath error:&error];
+  NSAssert(error == nil, error.localizedDescription);
+  DBFile *file;
   for (DBFileInfo *info in fileInfos) {
-    NSLog(@"\tFilename:%@", info.path.name);
+    if ([kTextFileName isEqualToString:info.path.name]) {
+      file = [[DBFilesystem sharedFilesystem] openFile:info.path error:&error];
+      NSAssert(error == nil, [error localizedDescription]);
+    }
   }
+  if (!file) {
+    file = [[DBFilesystem sharedFilesystem] createFile:[[DBPath alloc] initWithString:kTextFileName] error:&error];
+    NSAssert(error == nil, [error localizedDescription]);
+  }
+  _file = file;
 }
 
 - (void)handleLoginButtonTap {
   NSLog(@"tap!");
+}
+
+- (void)textViewDidChange:(UITextView *)textView {
+  NSError *error;
+  if (_file.status.cached) {
+    [_file writeString:textView.text error:&error];
+    NSAssert(error == nil, [error localizedDescription]);
+  }
 }
 
 @end
