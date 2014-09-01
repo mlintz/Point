@@ -8,6 +8,6 @@
 
 #import "PTAFilePrivate.h"
 
-@implementation PTAFilePrivate
+@implementation PTAFile (Private)
 
 @end

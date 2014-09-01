@@ -12,6 +12,6 @@
 
 @interface PTAFile (Private)
 
-- (instancetype)initWithFile:(DBFile *)file;
+//- (instancetype)initWithFile:(DBFile *)file;
 
 @end

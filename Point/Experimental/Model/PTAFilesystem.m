@@ -48,17 +48,19 @@ static PTAFilesystem *gSharedFilesystem;
   } else {
     _filesystem = [[DBFilesystem alloc] initWithAccount:_manager.linkedAccount];
     [_filesystem addObserver:self block:^{
-      <#code#>
+//      code
     }];
   }
 }
 
 - (BOOL)handleOpenURL:(NSURL *)url {
   [_manager handleOpenURL:url];
+  return NO;
 }
 
 - (BFTask *)fetchAllFiles {
   NSAssert(_filesystem, @"Filesystem must be non-nil.");
+  return nil;
 }
 
 @end
