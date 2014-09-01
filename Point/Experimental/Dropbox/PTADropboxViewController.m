@@ -72,6 +72,26 @@ static NSString *const kTextFileName = @"foo.txt";
     NSAssert(error == nil, [error localizedDescription]);
   }
   _file = file;
+  NSString *fileString = [_file readString:&error];
+  NSLog(@"%@", fileString);
+  __weak id weakSelf = self;
+  [_file addObserver:_observerHandle block:^{
+    PTADropboxViewController *strongSelf = weakSelf;
+    NSError *error;
+    if (strongSelf->_file.newerStatus.cached) {
+      [strongSelf->_file update:&error];
+      if (error) {
+        NSLog(@"%@", error.localizedDescription);
+        return;
+      }
+    }
+    NSString *fileString = [strongSelf->_file readString:&error];
+    if (error) {
+      
+    } else {
+      strongSelf->_textView.text = fileString;
+    }
+  }];
 }
 
 - (void)handleLoginButtonTap {

@@ -3,6 +3,7 @@
 workspace 'project'
 target "Point" do
     pod 'pop', '~> 1.0'
+    pod 'Bolts'
 	pod 'Dropbox-Sync-API-SDK', '~> 2.1'
 end
 
