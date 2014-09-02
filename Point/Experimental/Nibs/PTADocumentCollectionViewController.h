@@ -6,6 +6,6 @@
 //  Copyright (c) 2014 Mikey Lintz. All rights reserved.
 //
 
-@interface PTADocumentCollectionViewController : UIViewController<UITableViewDataSource>
+@interface PTADocumentCollectionViewController : UIViewController<UITableViewDataSource, UITableViewDelegate>
 
 @end

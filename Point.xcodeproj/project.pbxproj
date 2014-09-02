@@ -17,6 +17,7 @@
 		C89C531C19B3F49A00A177E0 /* PTADocumentCollectionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C89C531B19B3F49A00A177E0 /* PTADocumentCollectionViewController.m */; };
 		C89C532019B3FD1900A177E0 /* PTADocumentListCollectionViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = C89C531F19B3FD1900A177E0 /* PTADocumentListCollectionViewCell.xib */; };
 		C89C532319B4005F00A177E0 /* PTADocumentListCollectionViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = C89C532219B4005F00A177E0 /* PTADocumentListCollectionViewCell.m */; };
+		C89C532919B5424900A177E0 /* PTADocumentViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C89C532819B5424900A177E0 /* PTADocumentViewController.m */; };
 		C8C0CD53196A26B6001EF37F /* PTACategories.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C0CD52196A26B6001EF37F /* PTACategories.m */; };
 		C8C0CD5A196A26C4001EF37F /* PTAParser.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C0CD55196A26C4001EF37F /* PTAParser.m */; };
 		C8C0CD5B196A26C4001EF37F /* PTATextEditorView.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C0CD57196A26C4001EF37F /* PTATextEditorView.m */; };
@@ -63,6 +64,8 @@
 		C89C531F19B3FD1900A177E0 /* PTADocumentListCollectionViewCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = PTADocumentListCollectionViewCell.xib; path = Experimental/Nibs/PTADocumentListCollectionViewCell.xib; sourceTree = "<group>"; };
 		C89C532119B4005F00A177E0 /* PTADocumentListCollectionViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTADocumentListCollectionViewCell.h; path = Experimental/Nibs/PTADocumentListCollectionViewCell.h; sourceTree = "<group>"; };
 		C89C532219B4005F00A177E0 /* PTADocumentListCollectionViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTADocumentListCollectionViewCell.m; path = Experimental/Nibs/PTADocumentListCollectionViewCell.m; sourceTree = "<group>"; };
+		C89C532719B5424900A177E0 /* PTADocumentViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTADocumentViewController.h; path = Experimental/Nibs/PTADocumentViewController.h; sourceTree = "<group>"; };
+		C89C532819B5424900A177E0 /* PTADocumentViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTADocumentViewController.m; path = Experimental/Nibs/PTADocumentViewController.m; sourceTree = "<group>"; };
 		C8C0CD51196A26B6001EF37F /* PTACategories.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTACategories.h; path = Common/PTACategories.h; sourceTree = "<group>"; };
 		C8C0CD52196A26B6001EF37F /* PTACategories.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTACategories.m; path = Common/PTACategories.m; sourceTree = "<group>"; };
 		C8C0CD54196A26C4001EF37F /* PTAParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTAParser.h; path = Experimental/TextView/PTAParser.h; sourceTree = "<group>"; };
@@ -142,6 +145,8 @@
 		C89C531719B3F2DA00A177E0 /* Nibs */ = {
 			isa = PBXGroup;
 			children = (
+				C89C532719B5424900A177E0 /* PTADocumentViewController.h */,
+				C89C532819B5424900A177E0 /* PTADocumentViewController.m */,
 				C89C531A19B3F49A00A177E0 /* PTADocumentCollectionViewController.h */,
 				C89C531B19B3F49A00A177E0 /* PTADocumentCollectionViewController.m */,
 				C89C531F19B3FD1900A177E0 /* PTADocumentListCollectionViewCell.xib */,
@@ -401,6 +406,7 @@
 				C8C0CD5C196A26C4001EF37F /* PTATextEditorViewController.m in Sources */,
 				C8441A49197B71010081D284 /* PTAFilePrivate.m in Sources */,
 				C87ACDF8196A4731008E8B50 /* PTADropboxViewController.m in Sources */,
+				C89C532919B5424900A177E0 /* PTADocumentViewController.m in Sources */,
 				C8C0CD53196A26B6001EF37F /* PTACategories.m in Sources */,
 				C8441A43197B6D290081D284 /* PTAFile.m in Sources */,
 				C8C42F67196745A80041645E /* PTAAppDelegate.m in Sources */,

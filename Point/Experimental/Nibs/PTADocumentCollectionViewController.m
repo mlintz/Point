@@ -9,6 +9,7 @@
 #import "PTADocumentCollectionViewController.h"
 
 #import "PTADocumentListCollectionViewCell.h"
+#import "PTADocumentViewController.h"
 
 static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 
@@ -43,9 +44,15 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 - (void)loadView {
   _tableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStylePlain];
   _tableView.dataSource = self;
+  _tableView.delegate = self;
   [_tableView registerClass:[PTATableViewCell class] forCellReuseIdentifier:reuseIdentifier];
   
   self.view = _tableView;
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+  NSIndexPath *path = _tableView.indexPathForSelectedRow;
+  [_tableView deselectRowAtIndexPath:path animated:NO];
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -64,6 +71,15 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 
 - (void)handleAddTapped:(id)sender {
   NSLog(@"Add!");
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+  NSString *title = _dummyStrings[indexPath.row];
+  NSString *text = [NSString stringWithFormat:@"%@ %@", title, @"whether or not you check in your Pods folder is up to you, as workflows vary from project to project. We recommend against adding the Pods directory to your .gitignore. However you should judge for yourself, here are the pros and cons:"];
+  PTADocumentViewController *vc = [[PTADocumentViewController alloc] init];
+  vc.title = title;
+  vc.text = text;
+  [self.navigationController pushViewController:vc animated:YES];
 }
 
 @end
