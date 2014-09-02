@@ -1,3 +1,8 @@
+Next:
+ 1) show spinner while waiting for filesystem to sync
+ 2) on filesystem changed, grab new fileinfos, show or hide spinner, and reset tableview
+ 3) implement datasource methods
+
 //
 //  PTADocumentCollectionViewController.m
 //  Point
@@ -27,6 +32,7 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 @implementation PTADocumentCollectionViewController {
   UITableView *_tableView;
   NSArray *_dummyStrings;
+  NSArray *_fileInfos;
 }
 
 - (id)init {
@@ -55,6 +61,27 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
   [_tableView deselectRowAtIndexPath:path animated:NO];
 }
 
+- (void)viewDidAppear:(BOOL)animated {
+  [super viewDidAppear:animated];
+  DBAccountManager *accountManager = [DBAccountManager sharedManager];
+  if (!accountManager.linkedAccount) {
+    [accountManager linkFromController:self];
+  }
+  DBAccount *account = [[DBAccountManager sharedManager] linkedAccount];
+  if (!DBFilesystem.sharedFilesystem) {
+    DBFilesystem *filesystem = [[DBFilesystem alloc] initWithAccount:account];
+    [DBFilesystem setSharedFilesystem:filesystem];
+  }
+  __weak id weakSelf = self;
+  [DBFilesystem.sharedFilesystem addObserver:self block:^{
+    [weakSelf handleFilesystemChanged];
+  }];
+  [DBFilesystem.sharedFilesystem addObserver:self forPathAndChildren:DBPath.root block:^{
+    [weakSelf handleFilesystemChanged];
+  }];
+  [self handleFilesystemChanged];
+}
+
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
   if (section == 0) {
     return _dummyStrings.count;
@@ -80,6 +107,10 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
   vc.title = title;
   vc.text = text;
   [self.navigationController pushViewController:vc animated:YES];
+}
+
+- (void)handleFilesystemChanged {
+
 }
 
 @end

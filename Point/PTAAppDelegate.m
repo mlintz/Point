@@ -22,9 +22,9 @@
   // Override point for customization after application launch.
   self.window.backgroundColor = [UIColor whiteColor];
 //
-//  DBAccountManager *accountManager = [[DBAccountManager alloc] initWithAppKey:[PTAAuthenticationValues key]
-//                                                                       secret:[PTAAuthenticationValues secret]];
-//  [DBAccountManager setSharedManager:accountManager];
+  DBAccountManager *accountManager = [[DBAccountManager alloc] initWithAppKey:[PTAAuthenticationValues key]
+                                                                       secret:[PTAAuthenticationValues secret]];
+  [DBAccountManager setSharedManager:accountManager];
   PTADocumentCollectionViewController *rootController = [[PTADocumentCollectionViewController alloc] init];
   
   self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:rootController];

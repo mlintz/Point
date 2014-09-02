@@ -16,3 +16,4 @@
 #endif
 
 #import "PTACategories.h"
+#import <Dropbox/Dropbox.h>
