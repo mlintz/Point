@@ -12,6 +12,8 @@
 
 #import "PTAAuthenticationValues.h"
 #import "PTADropboxViewController.h"
+#import "PTADocumentCollectionViewController.h"
+
 
 @implementation PTAAppDelegate
 
@@ -19,12 +21,16 @@
   self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
   // Override point for customization after application launch.
   self.window.backgroundColor = [UIColor whiteColor];
-  self.window.rootViewController = [[PTADropboxViewController alloc] init];
+//
+//  DBAccountManager *accountManager = [[DBAccountManager alloc] initWithAppKey:[PTAAuthenticationValues key]
+//                                                                       secret:[PTAAuthenticationValues secret]];
+//  [DBAccountManager setSharedManager:accountManager];
+  PTADocumentCollectionViewController *rootController = [[PTADocumentCollectionViewController alloc] init];
+  
+  self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:rootController];
+//  self.window.rootViewController = rootController;
   [self.window makeKeyAndVisible];
 
-  DBAccountManager *accountManager = [[DBAccountManager alloc] initWithAppKey:[PTAAuthenticationValues key]
-                                                                       secret:[PTAAuthenticationValues secret]];
-  [DBAccountManager setSharedManager:accountManager];
 
   return YES;
 }
