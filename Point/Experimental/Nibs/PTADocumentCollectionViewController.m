@@ -1,7 +1,10 @@
-Next:
- 1) show spinner while waiting for filesystem to sync
- 2) on filesystem changed, grab new fileinfos, show or hide spinner, and reset tableview
- 3) implement datasource methods
+//Next:
+// 1) show spinner while waiting for filesystem to sync
+// 2) on filesystem changed, grab new fileinfos, show or hide spinner, and reset tableview
+// 3) implement datasource methods
+//  - spinner in upper right if sync in progress?
+//  - icon in file cell if sync in progress?
+//  - add header icon showing download/upload state
 
 //
 //  PTADocumentCollectionViewController.m
@@ -31,6 +34,8 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 
 @implementation PTADocumentCollectionViewController {
   UITableView *_tableView;
+  UIActivityIndicatorView *_spinnerView;
+  NSDateFormatter *_dateFormatter;
   NSArray *_dummyStrings;
   NSArray *_fileInfos;
 }
@@ -43,6 +48,10 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd
                                                                                            target:self
                                                                                            action:@selector(handleAddTapped:)];
+  
+    _dateFormatter = [[NSDateFormatter alloc] init];
+    [_dateFormatter setDateStyle:NSDateFormatterMediumStyle];
+    [_dateFormatter setTimeStyle:NSDateFormatterShortStyle];
   }
   return self;
 }
@@ -52,11 +61,22 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
   _tableView.dataSource = self;
   _tableView.delegate = self;
   [_tableView registerClass:[PTATableViewCell class] forCellReuseIdentifier:reuseIdentifier];
+ 
+  _spinnerView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+  [_spinnerView startAnimating];
+  [_tableView addSubview:_spinnerView];
   
   self.view = _tableView;
 }
 
+- (void)viewWillLayoutSubviews {
+  [super viewWillLayoutSubviews];
+  [_spinnerView sizeToFit];
+  _spinnerView.center = _tableView.center;
+}
+
 - (void)viewWillAppear:(BOOL)animated {
+  [super viewWillAppear:animated];
   NSIndexPath *path = _tableView.indexPathForSelectedRow;
   [_tableView deselectRowAtIndexPath:path animated:NO];
 }
@@ -71,46 +91,63 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
   if (!DBFilesystem.sharedFilesystem) {
     DBFilesystem *filesystem = [[DBFilesystem alloc] initWithAccount:account];
     [DBFilesystem setSharedFilesystem:filesystem];
+    __weak id weakSelf = self;
+    [DBFilesystem.sharedFilesystem addObserver:self block:^{
+      [weakSelf updateView];
+    }];
+    [DBFilesystem.sharedFilesystem addObserver:self forPathAndChildren:DBPath.root block:^{
+      [weakSelf updateView];
+    }];
   }
-  __weak id weakSelf = self;
-  [DBFilesystem.sharedFilesystem addObserver:self block:^{
-    [weakSelf handleFilesystemChanged];
-  }];
-  [DBFilesystem.sharedFilesystem addObserver:self forPathAndChildren:DBPath.root block:^{
-    [weakSelf handleFilesystemChanged];
-  }];
-  [self handleFilesystemChanged];
+  [self updateView];
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
   if (section == 0) {
-    return _dummyStrings.count;
+    return _fileInfos.count;
   }
   return 0;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
   PTATableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
-  cell.textLabel.text = _dummyStrings[indexPath.row];
-  cell.detailTextLabel.text = @"August 12, 1989";
+  DBFileInfo *info = _fileInfos[indexPath.row];
+  cell.textLabel.text = info.path.name;
+  cell.detailTextLabel.text = [_dateFormatter stringFromDate:info.modifiedTime];
+//  cell.textLabel.text = _dummyStrings[indexPath.row];
+//  cell.detailTextLabel.text = @"August 12, 1989";
   return cell;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+  DBFileInfo *fileInfo = _fileInfos[indexPath.row];
+  NSError *error;
+  DBFile *file = [DBFilesystem.sharedFilesystem openFile:fileInfo.path error:&error];
+  NSAssert(!error, error.localizedDescription);
+
+  PTADocumentViewController *vc = [[PTADocumentViewController alloc] init];
+  vc.file = file;
+
+  [self.navigationController pushViewController:vc animated:YES];
+}
+
+#pragma mark - Private
+
+- (void)updateView {
+  NSError *error;
+  if (!DBFilesystem.sharedFilesystem.completedFirstSync) {
+    _spinnerView.hidden = NO;
+    _fileInfos = nil;
+  } else {
+    _spinnerView.hidden = YES;
+    _fileInfos = [[DBFilesystem.sharedFilesystem listFolder:[DBPath root] error:&error] copy];
+    NSAssert(!error, error.localizedDescription);
+  }
+  [_tableView reloadData];
 }
 
 - (void)handleAddTapped:(id)sender {
   NSLog(@"Add!");
-}
-
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-  NSString *title = _dummyStrings[indexPath.row];
-  NSString *text = [NSString stringWithFormat:@"%@ %@", title, @"whether or not you check in your Pods folder is up to you, as workflows vary from project to project. We recommend against adding the Pods directory to your .gitignore. However you should judge for yourself, here are the pros and cons:"];
-  PTADocumentViewController *vc = [[PTADocumentViewController alloc] init];
-  vc.title = title;
-  vc.text = text;
-  [self.navigationController pushViewController:vc animated:YES];
-}
-
-- (void)handleFilesystemChanged {
-
 }
 
 @end

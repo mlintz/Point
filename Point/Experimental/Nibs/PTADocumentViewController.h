@@ -9,6 +9,5 @@
 #import <UIKit/UIKit.h>
 
 @interface PTADocumentViewController : UIViewController
-@property(nonatomic, copy) NSString *title;
-@property(nonatomic, copy) NSString *text;
+@property(nonatomic, copy) DBFile *file;
 @end
