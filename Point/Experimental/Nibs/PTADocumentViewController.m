@@ -9,17 +9,6 @@
 //  Copyright (c) 2014 Mikey Lintz. All rights reserved.
 //
 
-@interface MActivityView : UIActivityIndicatorView
-@end
-
-@implementation MActivityView
-
-- (void)setHidden:(BOOL)hidden {
-  [super setHidden:hidden];
-}
-
-@end
-
 #import "PTADocumentViewController.h"
 
 @implementation PTADocumentViewController {
@@ -49,7 +38,7 @@
 - (void)loadView {
   _textView = [[UITextView alloc] initWithFrame:CGRectZero];
   
-  _spinnerView = [[MActivityView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+  _spinnerView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
   [_spinnerView hidesWhenStopped];
   [_spinnerView startAnimating];
   [_textView addSubview:_spinnerView];
