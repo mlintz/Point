@@ -21,6 +21,20 @@
 
 static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 
+@interface NSArray (DocumentCollection)
+- (NSArray *)pta_filteredArrayWithPathExtension:(NSString *)pathExtension;
+@end
+
+@implementation NSArray (DocumentCollection)
+
+- (NSArray *)pta_filteredArrayWithPathExtension:(NSString *)pathExtension {
+  return [self filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(DBFileInfo *info, NSDictionary *_) {
+    return [info.path.name.pathExtension isEqualToString:pathExtension];
+  }]];
+}
+
+@end
+
 @interface PTATableViewCell : UITableViewCell
 @end
 
@@ -140,7 +154,7 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
     _fileInfos = nil;
   } else {
     _spinnerView.hidden = YES;
-    _fileInfos = [[DBFilesystem.sharedFilesystem listFolder:[DBPath root] error:&error] copy];
+    _fileInfos = [[DBFilesystem.sharedFilesystem listFolder:[DBPath root] error:&error] pta_filteredArrayWithPathExtension:@"txt"];
     NSAssert(!error, error.localizedDescription);
   }
   [_tableView reloadData];
