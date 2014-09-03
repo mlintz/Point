@@ -37,6 +37,7 @@
 
 - (void)loadView {
   _textView = [[UITextView alloc] initWithFrame:CGRectZero];
+  _textView.delegate = self;
   
   _spinnerView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
   [_spinnerView hidesWhenStopped];
@@ -51,6 +52,15 @@
   [super viewWillLayoutSubviews];
   [_spinnerView sizeToFit];
   _spinnerView.center = _textView.center;
+}
+
+#pragma mark - UITextViewDelegate
+
+- (void)textViewDidChange:(UITextView *)textView {
+  NSAssert(_file, @"Textview changed but file is nil.");
+  NSError *error;
+  BOOL successful = [_file writeString:textView.text error:&error];
+  NSAssert(successful, error.localizedDescription);
 }
 
 #pragma mark - Private

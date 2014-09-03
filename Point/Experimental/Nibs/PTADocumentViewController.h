@@ -8,6 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface PTADocumentViewController : UIViewController
+@interface PTADocumentViewController : UIViewController<UITextViewDelegate>
 @property(nonatomic, copy) DBFile *file;
 @end
