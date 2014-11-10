@@ -22,7 +22,7 @@
   if (_file.status.cached) {
     _isCached = YES;
     [self updateView];
-    return;
+//    return;
   }
   __weak id weakSelf = self;
   [_file addObserver:self block:^{
