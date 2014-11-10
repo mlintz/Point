@@ -21,7 +21,7 @@
 
 @property(nonatomic, readonly) PTADirectory *directory;
 
-- (instancetype)initWithFilesystem:(DBFilesystem *)fileSystem;
+- (instancetype)initWithFilesystem:(DBFilesystem *)fileSystem rootPath:(DBPath *)rootPath;
 
 // add/remove parameters must be non-nil
 - (void)addDirectoryObserver:(id<PTADirectoryObserver>)observer;
@@ -29,12 +29,14 @@
 
 // add/remove parameters must be non-nil
 - (void)addFileObserver:(id<PTAFileObserver>)observer forPath:(DBPath *)path;
+- (void)removeFileObserver:(id<PTAFileObserver>)observer forPath:(DBPath *)path;
 - (void)removeFileObserver:(id<PTAFileObserver>)observer;
 
 // Returns nil if no file at path.
 - (PTAFile *)openFileForPath:(DBPath *)path;
 - (void)closeFileForPath:(DBPath *)path;
 // XXX(mlintz): manually publish update!
+// XXX(mlintz): assert if file isn't open!
 - (void)writeString:(NSString *)string toFileAtPath:(DBPath *)path;
 - (void)appendString:(NSString *)string toFileAtPath:(DBPath *)path;
 - (void)updateFileForPath:(DBPath *)path;

@@ -15,7 +15,8 @@
 // XXX(mlintz): implement isequals and hash
 
 - (instancetype)init {
-  return [self initWithInfo:nil content:nil];
+  [self doesNotRecognizeSelector:_cmd];
+  return nil;
 }
 
 - (instancetype)initWithInfo:(PTAFileInfo *)info content:(NSString *)content {

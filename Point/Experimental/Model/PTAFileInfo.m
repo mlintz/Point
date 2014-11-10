@@ -11,7 +11,8 @@
 @implementation PTAFileInfo
 
 - (instancetype)init {
-  return [self initWithFile:nil];
+  [self doesNotRecognizeSelector:_cmd];
+  return nil;
 }
 
 - (instancetype)initWithFile:(DBFile *)file {

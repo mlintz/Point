@@ -11,7 +11,8 @@
 @implementation PTADirectory
 
 - (instancetype)init {
-  return [self initWithFileInfos:nil didCompleteFirstSync:NO];
+  [self doesNotRecognizeSelector:_cmd];
+  return nil;
 }
 
 - (instancetype)initWithFileInfos:(NSArray *)fileInfos
@@ -21,6 +22,10 @@
     _fileInfos = [fileInfos copy];
     _didCompleteFirstSync = didCompleteFirstSync;
   }
+  return self;
+}
+
+- (id)copyWithZone:(NSZone *)zone {
   return self;
 }
 
