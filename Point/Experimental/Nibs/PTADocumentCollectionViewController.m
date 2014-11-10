@@ -16,7 +16,6 @@
 
 #import "PTADocumentCollectionViewController.h"
 
-#import "PTADocumentListCollectionViewCell.h"
 #import "PTADocumentViewController.h"
 
 static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
