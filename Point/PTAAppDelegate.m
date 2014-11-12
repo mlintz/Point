@@ -11,7 +11,6 @@
 #import <Dropbox/Dropbox.h>
 
 #import "PTAAuthenticationValues.h"
-#import "PTADropboxViewController.h"
 #import "PTADocumentCollectionViewController.h"
 
 

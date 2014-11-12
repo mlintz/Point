@@ -6,6 +6,10 @@
 //  Copyright (c) 2014 Mikey Lintz. All rights reserved.
 //
 
-@interface PTADocumentCollectionViewController : UIViewController<UITableViewDataSource, UITableViewDelegate>
+@class PTAFilesystemManager;
+
+@interface PTADocumentCollectionViewController : UIViewController
+
+- (instancetype)initWithFilesystemManager:(PTAFilesystemManager *)filesystemManager;
 
 @end

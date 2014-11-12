@@ -16,7 +16,10 @@
 
 #import "PTADocumentCollectionViewController.h"
 
+#import "PTADirectory.h"
 #import "PTADocumentViewController.h"
+#import "PTAFilesystemManager.h"
+#import "PTAFileInfo.h"
 
 static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 
@@ -45,45 +48,63 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 
 @end
 
+@interface PTADocumentCollectionViewController ()<UITableViewDelegate, UITableViewDataSource, PTADirectoryObserver>
+@end
+
 @implementation PTADocumentCollectionViewController {
   UITableView *_tableView;
   UIActivityIndicatorView *_spinnerView;
   NSDateFormatter *_dateFormatter;
-  NSArray *_dummyStrings;
-  NSArray *_fileInfos;
+
+  PTAFilesystemManager *_filesystemManager;
+  PTADirectory *_directory;
 }
 
-- (id)init {
+- (instancetype)init {
+  [self doesNotRecognizeSelector:_cmd];
+  return nil;
+}
+
+- (instancetype)initWithFilesystemManager:(PTAFilesystemManager *)filesystemManager {
+  NSAssert(filesystemManager, @"filesystemManager must be non-nil");
   self = [super init];
   if (self) {
-    _dummyStrings = @[@"alpha", @"bravo", @"charlie", @"dogtrot", @"echo"];
     self.navigationItem.title = @"All Documents";
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd
                                                                                            target:self
                                                                                            action:@selector(handleAddTapped:)];
   
+
     _dateFormatter = [[NSDateFormatter alloc] init];
     [_dateFormatter setDateStyle:NSDateFormatterMediumStyle];
     [_dateFormatter setTimeStyle:NSDateFormatterShortStyle];
+
+    _filesystemManager = filesystemManager;
+    [filesystemManager addDirectoryObserver:self];
+    _directory = _filesystemManager.directory;
   }
   return self;
 }
 
 - (void)loadView {
+  self.view = [[UIView alloc] init];
+
   _tableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStylePlain];
   _tableView.dataSource = self;
   _tableView.delegate = self;
   [_tableView registerClass:[PTATableViewCell class] forCellReuseIdentifier:reuseIdentifier];
+  [self.view addSubview:_tableView];
  
   _spinnerView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
   [_spinnerView startAnimating];
-  [_tableView addSubview:_spinnerView];
-  
-  self.view = _tableView;
+  [self.view addSubview:_spinnerView];
 }
 
 - (void)viewWillLayoutSubviews {
   [super viewWillLayoutSubviews];
+
+  _tableView.frame = self.view.bounds;
+
   [_spinnerView sizeToFit];
   _spinnerView.center = _tableView.center;
 }
@@ -95,69 +116,88 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 }
 
 - (void)viewDidAppear:(BOOL)animated {
-  [super viewDidAppear:animated];
-  DBAccountManager *accountManager = [DBAccountManager sharedManager];
-  if (!accountManager.linkedAccount) {
-    [accountManager linkFromController:self];
-  }
-  DBAccount *account = [[DBAccountManager sharedManager] linkedAccount];
-  if (!DBFilesystem.sharedFilesystem) {
-    DBFilesystem *filesystem = [[DBFilesystem alloc] initWithAccount:account];
-    [DBFilesystem setSharedFilesystem:filesystem];
-    __weak id weakSelf = self;
-    [DBFilesystem.sharedFilesystem addObserver:self block:^{
-      [weakSelf updateView];
-    }];
-    [DBFilesystem.sharedFilesystem addObserver:self forPathAndChildren:DBPath.root block:^{
-      [weakSelf updateView];
-    }];
-  }
-  [self updateView];
+// XXX(mlintz): move account linking code into ApplicationDelegate file
+  [self updateSpinnerVisibility];
+
+
+//  [super viewDidAppear:animated];
+//  DBAccountManager *accountManager = [DBAccountManager sharedManager];
+//  if (!accountManager.linkedAccount) {
+//    [accountManager linkFromController:self];
+//  }
+//  DBAccount *account = [[DBAccountManager sharedManager] linkedAccount];
+//  if (!DBFilesystem.sharedFilesystem) {
+//    DBFilesystem *filesystem = [[DBFilesystem alloc] initWithAccount:account];
+//    [DBFilesystem setSharedFilesystem:filesystem];
+//    __weak id weakSelf = self;
+//    [DBFilesystem.sharedFilesystem addObserver:self block:^{
+//      [weakSelf updateView];
+//    }];
+//    [DBFilesystem.sharedFilesystem addObserver:self forPathAndChildren:DBPath.root block:^{
+//      [weakSelf updateView];
+//    }];
+//  }
+//  [self updateView];
 }
+
+#pragma mark - UITableViewDataSource
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
   if (section == 0) {
-    return _fileInfos.count;
+    return _directory.didCompleteFirstSync ? _directory.fileInfos.count : 0;
   }
   return 0;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
   PTATableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
-  DBFileInfo *info = _fileInfos[indexPath.row];
+  PTAFileInfo *info = _directory.fileInfos[indexPath.row];
   cell.textLabel.text = info.path.name;
   cell.detailTextLabel.text = [_dateFormatter stringFromDate:info.modifiedTime];
-//  cell.textLabel.text = _dummyStrings[indexPath.row];
-//  cell.detailTextLabel.text = @"August 12, 1989";
   return cell;
 }
 
+#pragma mark - UITableViewDelegate
+
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-  DBFileInfo *fileInfo = _fileInfos[indexPath.row];
-  NSError *error;
-  DBFile *file = [DBFilesystem.sharedFilesystem openFile:fileInfo.path error:&error];
-  NSAssert(!error, error.localizedDescription);
+// XXX(mlintz): implement this!
 
-  PTADocumentViewController *vc = [[PTADocumentViewController alloc] init];
-  vc.file = file;
+//  DBFileInfo *fileInfo = _fileInfos[indexPath.row];
+//  NSError *error;
+//  DBFile *file = [DBFilesystem.sharedFilesystem openFile:fileInfo.path error:&error];
+//  NSAssert(!error, error.localizedDescription);
+//
+//  PTADocumentViewController *vc = [[PTADocumentViewController alloc] init];
+//  vc.file = file;
+//
+//  [self.navigationController pushViewController:vc animated:YES];
+}
 
-  [self.navigationController pushViewController:vc animated:YES];
+#pragma mark - PTADirectoryObserver
+
+- (void)directoryDidChange:(PTADirectory *)directory {
+  _directory = directory;
+  [_tableView reloadData];
 }
 
 #pragma mark - Private
 
-- (void)updateView {
-  NSError *error;
-  if (!DBFilesystem.sharedFilesystem.completedFirstSync) {
-    _spinnerView.hidden = NO;
-    _fileInfos = nil;
-  } else {
-    _spinnerView.hidden = YES;
-    _fileInfos = [[DBFilesystem.sharedFilesystem listFolder:[DBPath root] error:&error] pta_filteredArrayWithPathExtension:@"txt"];
-    NSAssert(!error, error.localizedDescription);
-  }
-  [_tableView reloadData];
+- (void)updateSpinnerVisibility {
+  _spinnerView.hidden = _directory.didCompleteFirstSync;
 }
+
+//- (void)updateView {
+//  NSError *error;
+//  if (!DBFilesystem.sharedFilesystem.completedFirstSync) {
+//    _spinnerView.hidden = NO;
+//    _fileInfos = nil;
+//  } else {
+//    _spinnerView.hidden = YES;
+//    _fileInfos = [[DBFilesystem.sharedFilesystem listFolder:[DBPath root] error:&error] pta_filteredArrayWithPathExtension:@"txt"];
+//    NSAssert(!error, error.localizedDescription);
+//  }
+//  [_tableView reloadData];
+//}
 
 - (void)handleAddTapped:(id)sender {
   NSLog(@"Add!");
