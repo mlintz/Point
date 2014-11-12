@@ -150,9 +150,44 @@
   _filesMap[path] = nil;
 }
 
-Start with writeString...
+- (void)writeString:(NSString *)string toFileAtPath:(DBPath *)path {
+  [self performFileOperation:^BOOL(DBFile *file, DBError *__autoreleasing *error) {
+    return [file writeString:string error:error];
+  } forPath:path];
+}
+
+- (void)appendString:(NSString *)string toFileAtPath:(DBPath *)path {
+  [self performFileOperation:^BOOL(DBFile *file, DBError *__autoreleasing *error) {
+    return [file appendString:string error:error];
+  } forPath:path];
+}
+
+- (void)updateFileForPath:(DBPath *)path {
+  [self performFileOperation:^BOOL(DBFile *file, DBError *__autoreleasing *error) {
+    return [file update:error];
+  } forPath:path];
+}
 
 #pragma mark - Private
+
+- (void)performFileOperation:(BOOL (^)(DBFile *file, DBError **error))operation
+                     forPath:(DBPath *)path {
+  NSAssert(path, @"path must be non-nil");
+  DBFile *file = _filesMap[path];
+  NSAssert(file, @"No open file at path %@. Paths: %@", path, _filesMap.allKeys);
+  NSAssert(file.open, @"File must be open to write to it.");
+  DBError *error;
+  BOOL success = operation(file, &error);
+  NSAssert(success && !error, @"Error writing file: %@", error.localizedDescription);
+  
+  [_pathsNeedingDispatch addObject:path];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    if ([self->_pathsNeedingDispatch containsObject:path]) {
+      [self->_pathsNeedingDispatch removeObject:path];
+      [self publishFileChanged:file];
+    }
+  });
+}
 
 - (PTADirectory *)createDirectory {
   PTADirectory *directory;

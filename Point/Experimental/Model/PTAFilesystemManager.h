@@ -34,9 +34,8 @@
 
 // Returns nil if no file at path.
 - (PTAFile *)openFileForPath:(DBPath *)path;
+// XXX(mlintz): probably can't make this a local decision
 - (void)closeFileForPath:(DBPath *)path;
-// XXX(mlintz): manually publish update!
-// XXX(mlintz): assert if file isn't open!
 - (void)writeString:(NSString *)string toFileAtPath:(DBPath *)path;
 - (void)appendString:(NSString *)string toFileAtPath:(DBPath *)path;
 - (void)updateFileForPath:(DBPath *)path;
