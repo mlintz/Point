@@ -34,7 +34,7 @@
 
 // Returns nil if no file at path.
 - (PTAFile *)openFileForPath:(DBPath *)path;
-// XXX(mlintz): probably can't make this a local decision
+// XXX(mlintz): probably can't make this a local decision (call it "releaseFile"?)
 - (void)closeFileForPath:(DBPath *)path;
 - (void)writeString:(NSString *)string toFileAtPath:(DBPath *)path;
 - (void)appendString:(NSString *)string toFileAtPath:(DBPath *)path;
