@@ -76,6 +76,10 @@
   return self;
 }
 
+- (PTADirectory *)directory {
+  return [self createDirectory];
+}
+
 - (void)addDirectoryObserver:(id<PTADirectoryObserver>)observer {
   NSAssert(observer, @"observer must be non-nil");
   [_directoryObservers addObject:observer];
@@ -194,9 +198,10 @@
   if (_filesystem.completedFirstSync) {
     NSError *error;
     NSMutableArray *infos = [NSMutableArray array];
-    for (DBFile *file in [_filesystem listFolder:_rootPath error:&error]) {
+    for (DBFileInfo *fileInfo in [_filesystem listFolder:_rootPath error:&error]) {
       NSAssert(!error, @"error: %@", error.localizedDescription);
-      PTAFileInfo *info = [[PTAFileInfo alloc] initWithFile:file];
+      PTAFileInfo *info = [[PTAFileInfo alloc] initWithPath:fileInfo.path
+                                               modifiedTime:fileInfo.modifiedTime];
       [infos addObject:info];
     }
     directory = [[PTADirectory alloc] initWithFileInfos:infos
@@ -209,14 +214,13 @@
 }
 
 - (PTAFile *)createFile:(DBFile *)file {
-  PTAFileInfo *fileInfo = [[PTAFileInfo alloc] initWithFile:file];
   NSString *content;
   NSError *error;
-  if (fileInfo.isOpen) {
+  if (file.open) {
     content = [file readString:&error];
     NSAssert(!error, @"Error reading file: %@", error.localizedDescription);
   }
-  return [[PTAFile alloc] initWithInfo:fileInfo content:content];
+  return [[PTAFile alloc] initWithFile:file content:content];
 }
 
 - (void)publishDirectoryChanged {

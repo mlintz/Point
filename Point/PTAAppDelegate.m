@@ -12,7 +12,7 @@
 
 #import "PTAAuthenticationValues.h"
 #import "PTADocumentCollectionViewController.h"
-
+#import "PTAFilesystemManager.h"
 
 @implementation PTAAppDelegate
 
@@ -20,16 +20,25 @@
   self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
   // Override point for customization after application launch.
   self.window.backgroundColor = [UIColor whiteColor];
-//
+
   DBAccountManager *accountManager = [[DBAccountManager alloc] initWithAppKey:[PTAAuthenticationValues key]
                                                                        secret:[PTAAuthenticationValues secret]];
-  [DBAccountManager setSharedManager:accountManager];
-  PTADocumentCollectionViewController *rootController = [[PTADocumentCollectionViewController alloc] init];
-  
-  self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:rootController];
-//  self.window.rootViewController = rootController;
+  UIViewController *rootViewController;
+  if (accountManager.linkedAccount) {
+    DBFilesystem *filesystem = [[DBFilesystem alloc] initWithAccount:accountManager.linkedAccount];
+    PTAFilesystemManager *manager =
+        [[PTAFilesystemManager alloc] initWithFilesystem:filesystem rootPath:DBPath.root];
+    rootViewController = [[PTADocumentCollectionViewController alloc] initWithFilesystemManager:manager];
+  } else {
+    rootViewController = [[UIViewController alloc] init];
+  }
+
+  self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:rootViewController];
   [self.window makeKeyAndVisible];
 
+  if (!accountManager.linkedAccount) {
+    [accountManager linkFromController:rootViewController];
+  }
 
   return YES;
 }

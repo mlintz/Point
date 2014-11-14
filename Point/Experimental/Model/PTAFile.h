@@ -12,8 +12,14 @@
 @interface PTAFile : NSObject<NSCopying>
 
 @property(nonatomic, readonly) PTAFileInfo *info;
+@property(nonatomic, readonly) BOOL isOpen;
+@property(nonatomic, readonly) BOOL cached;
+@property(nonatomic, readonly) DBFileState state;
+@property(nonatomic, readonly) DBError *error;
+@property(nonatomic, readonly) BOOL hasNewerVersion;
+
 @property(nonatomic, readonly) NSString *content;
 
-- (instancetype)initWithInfo:(PTAFileInfo *)info content:(NSString *)content;
+- (instancetype)initWithFile:(DBFile *)file content:(NSString *)content;
 
 @end

@@ -98,6 +98,8 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
   _spinnerView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
   [_spinnerView startAnimating];
   [self.view addSubview:_spinnerView];
+
+  [self updateSpinnerVisibility];
 }
 
 - (void)viewWillLayoutSubviews {
@@ -115,9 +117,8 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
   [_tableView deselectRowAtIndexPath:path animated:NO];
 }
 
-- (void)viewDidAppear:(BOOL)animated {
+//- (void)viewDidAppear:(BOOL)animated {
 // XXX(mlintz): move account linking code into ApplicationDelegate file
-  [self updateSpinnerVisibility];
 
 
 //  [super viewDidAppear:animated];
@@ -138,7 +139,7 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 //    }];
 //  }
 //  [self updateView];
-}
+//}
 
 #pragma mark - UITableViewDataSource
 
@@ -177,6 +178,7 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 
 - (void)directoryDidChange:(PTADirectory *)directory {
   _directory = directory;
+  [self updateSpinnerVisibility];
   [_tableView reloadData];
 }
 

@@ -12,21 +12,26 @@
 
 @implementation PTAFile
 
-// XXX(mlintz): implement isequals and hash
-
 - (instancetype)init {
   [self doesNotRecognizeSelector:_cmd];
   return nil;
 }
 
-- (instancetype)initWithInfo:(PTAFileInfo *)info content:(NSString *)content {
+- (instancetype)initWithFile:(DBFile *)file content:(NSString *)content {
+  NSAssert(file, @"file must be non-nil");
   self = [super init];
   if (self) {
-    _info = [info copy];
+    _info = [[PTAFileInfo alloc] initWithPath:file.info.path modifiedTime:file.info.modifiedTime];
+    _isOpen = file.open;
+    _cached = file.status.cached;
+    _state = file.status.state;
+    _error = file.status.error;
+    _hasNewerVersion = (file.newerStatus != nil);
     _content = [content copy];
   }
   return self;
 }
+
 
 - (id)copyWithZone:(NSZone *)zone {
   return self;

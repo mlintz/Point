@@ -15,16 +15,12 @@
   return nil;
 }
 
-- (instancetype)initWithFile:(DBFile *)file {
+- (instancetype)initWithPath:(DBPath *)path modifiedTime:(NSDate *)modifiedTime {
+  NSAssert(path && modifiedTime, @"path (%@) and date (%@) must be non-nil", path, modifiedTime);
   self = [super init];
   if (self) {
-    _path = [file.info.path copy];
-    _modifiedTime = [file.info.modifiedTime copy];
-    _isOpen = file.open;
-    _isCached = file.status.cached;
-    _state = file.status.state;
-    _error = file.status.error;
-    _hasNewerVersion = (file.newerStatus != nil);
+    _path = [path copy];;
+    _modifiedTime = [modifiedTime copy];
   }
   return self;
 }
