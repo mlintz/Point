@@ -96,6 +96,7 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
   [self.view addSubview:_tableView];
  
   _spinnerView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+  _spinnerView.hidesWhenStopped = YES;
   [_spinnerView startAnimating];
   [self.view addSubview:_spinnerView];
 
@@ -118,9 +119,6 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 }
 
 //- (void)viewDidAppear:(BOOL)animated {
-// XXX(mlintz): move account linking code into ApplicationDelegate file
-
-
 //  [super viewDidAppear:animated];
 //  DBAccountManager *accountManager = [DBAccountManager sharedManager];
 //  if (!accountManager.linkedAccount) {
@@ -161,7 +159,10 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 #pragma mark - UITableViewDelegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-// XXX(mlintz): implement this!
+
+  PTAFileInfo *fileInfo = _directory.fileInfos[indexPath.row];
+  PTADocumentViewController *vc = [[PTADocumentViewController alloc] initWithManager:_filesystemManager path:fileInfo.path];
+  [self.navigationController pushViewController:vc animated:YES];
 
 //  DBFileInfo *fileInfo = _fileInfos[indexPath.row];
 //  NSError *error;
@@ -185,7 +186,11 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 #pragma mark - Private
 
 - (void)updateSpinnerVisibility {
-  _spinnerView.hidden = _directory.didCompleteFirstSync;
+  if (_directory.didCompleteFirstSync) {
+    [_spinnerView stopAnimating];
+  } else {
+    [_spinnerView startAnimating];
+  }
 }
 
 //- (void)updateView {

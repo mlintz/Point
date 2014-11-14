@@ -151,17 +151,19 @@
 - (void)closeFileForPath:(DBPath *)path {
   DBFile *file = _filesMap[path];
   [file close];
-  _filesMap[path] = nil;
+  [_filesMap removeObjectForKey:path];
 }
 
 - (void)writeString:(NSString *)string toFileAtPath:(DBPath *)path {
   [self performFileOperation:^BOOL(DBFile *file, DBError *__autoreleasing *error) {
+    NSAssert(!file.newerStatus, @"File must be fully synced.");
     return [file writeString:string error:error];
   } forPath:path];
 }
 
 - (void)appendString:(NSString *)string toFileAtPath:(DBPath *)path {
   [self performFileOperation:^BOOL(DBFile *file, DBError *__autoreleasing *error) {
+    NSAssert(!file.newerStatus, @"File must be fully synced.");
     return [file appendString:string error:error];
   } forPath:path];
 }
@@ -239,7 +241,7 @@
     return;
   }
   PTAFile *ptafile = [self createFile:file];
-  for (id<PTAFileObserver> observer in _fileObservers) {
+  for (id<PTAFileObserver> observer in fileObservers.objectEnumerator) {
     [observer fileDidChange:ptafile];
   }
 }

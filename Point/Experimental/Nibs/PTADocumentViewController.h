@@ -6,8 +6,10 @@
 //  Copyright (c) 2014 Mikey Lintz. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
+@class PTAFilesystemManager;
 
-@interface PTADocumentViewController : UIViewController<UITextViewDelegate>
-@property(nonatomic, copy) DBFile *file;
+@interface PTADocumentViewController : UIViewController
+
+- (instancetype)initWithManager:(PTAFilesystemManager *)manager path:(DBPath *)path;
+
 @end
