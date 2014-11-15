@@ -12,6 +12,7 @@
 #import "PTAFile.h"
 #import "PTAFileInfo.h"
 #import "PTAFilesystemManager.h"
+#import "PTAComposeBarButtonItem.h"
 
 @interface PTADocumentViewController ()<UITextViewDelegate, PTAFileObserver>
 @end
@@ -31,13 +32,18 @@
 }
 
 - (instancetype)initWithManager:(PTAFilesystemManager *)manager path:(DBPath *)path {
-  NSAssert(manager && path, @"manager (%@) and path (%@) must be non-nil.", manager, path);
+  NSParameterAssert(manager);
+  NSParameterAssert(path);
   self = [super init];
   if (self) {
     _filesystemManager = manager;
     [_filesystemManager addFileObserver:self forPath:path];
     _file = [_filesystemManager openFileForPath:path];
     NSAssert(!_file.error, @"Error opening file: %@", _file.error);
+
+    self.navigationItem.title = path.name;
+    self.navigationItem.rightBarButtonItem =
+        [[PTAComposeBarButtonItem alloc] initWithController:self filesystemManager:_filesystemManager];
   }
   return self;
 }

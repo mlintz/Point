@@ -218,7 +218,7 @@
 - (PTAFile *)createFile:(DBFile *)file {
   NSString *content;
   NSError *error;
-  if (file.open) {
+  if (file.status.cached) {
     content = [file readString:&error];
     NSAssert(!error, @"Error reading file: %@", error.localizedDescription);
   }

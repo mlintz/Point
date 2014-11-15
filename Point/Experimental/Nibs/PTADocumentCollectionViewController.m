@@ -20,6 +20,7 @@
 #import "PTADocumentViewController.h"
 #import "PTAFilesystemManager.h"
 #import "PTAFileInfo.h"
+#import "PTAComposeBarButtonItem.h"
 
 static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 
@@ -66,20 +67,19 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 }
 
 - (instancetype)initWithFilesystemManager:(PTAFilesystemManager *)filesystemManager {
-  NSAssert(filesystemManager, @"filesystemManager must be non-nil");
+  NSParameterAssert(filesystemManager);
   self = [super init];
   if (self) {
-    self.navigationItem.title = @"All Documents";
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd
-                                                                                           target:self
-                                                                                           action:@selector(handleAddTapped:)];
-  
-
     _dateFormatter = [[NSDateFormatter alloc] init];
     [_dateFormatter setDateStyle:NSDateFormatterMediumStyle];
     [_dateFormatter setTimeStyle:NSDateFormatterShortStyle];
 
     _filesystemManager = filesystemManager;
+
+    self.navigationItem.title = @"All Documents";
+    self.navigationItem.rightBarButtonItem =
+        [[PTAComposeBarButtonItem alloc] initWithController:self filesystemManager:_filesystemManager];
+  
     [filesystemManager addDirectoryObserver:self];
     _directory = _filesystemManager.directory;
   }
@@ -205,9 +205,5 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 //  }
 //  [_tableView reloadData];
 //}
-
-- (void)handleAddTapped:(id)sender {
-  NSLog(@"Add!");
-}
 
 @end

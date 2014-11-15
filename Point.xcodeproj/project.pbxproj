@@ -16,6 +16,7 @@
 		C8A098CE1A104B790075560F /* PTAFileInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = C8A098CD1A104B790075560F /* PTAFileInfo.m */; };
 		C8A098D11A1054C60075560F /* PTAFilesystemManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C8A098D01A1054C60075560F /* PTAFilesystemManager.m */; };
 		C8A098D41A106C5E0075560F /* PTADirectory.m in Sources */ = {isa = PBXBuildFile; fileRef = C8A098D31A106C5E0075560F /* PTADirectory.m */; };
+		C8BDF86A1A16EC6800F6AB2A /* PTAComposeBarButtonItem.m in Sources */ = {isa = PBXBuildFile; fileRef = C8BDF8691A16EC6800F6AB2A /* PTAComposeBarButtonItem.m */; };
 		C8C0CD53196A26B6001EF37F /* PTACategories.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C0CD52196A26B6001EF37F /* PTACategories.m */; };
 		C8C0CD5A196A26C4001EF37F /* PTAParser.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C0CD55196A26C4001EF37F /* PTAParser.m */; };
 		C8C0CD5B196A26C4001EF37F /* PTATextEditorView.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C0CD57196A26C4001EF37F /* PTATextEditorView.m */; };
@@ -61,6 +62,8 @@
 		C8A098D01A1054C60075560F /* PTAFilesystemManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTAFilesystemManager.m; path = Experimental/Model/PTAFilesystemManager.m; sourceTree = "<group>"; };
 		C8A098D21A106C5E0075560F /* PTADirectory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTADirectory.h; path = Experimental/Model/PTADirectory.h; sourceTree = "<group>"; };
 		C8A098D31A106C5E0075560F /* PTADirectory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTADirectory.m; path = Experimental/Model/PTADirectory.m; sourceTree = "<group>"; };
+		C8BDF8681A16EC6800F6AB2A /* PTAComposeBarButtonItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTAComposeBarButtonItem.h; path = Experimental/Nibs/PTAComposeBarButtonItem.h; sourceTree = "<group>"; };
+		C8BDF8691A16EC6800F6AB2A /* PTAComposeBarButtonItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTAComposeBarButtonItem.m; path = Experimental/Nibs/PTAComposeBarButtonItem.m; sourceTree = "<group>"; };
 		C8C0CD51196A26B6001EF37F /* PTACategories.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTACategories.h; path = Common/PTACategories.h; sourceTree = "<group>"; };
 		C8C0CD52196A26B6001EF37F /* PTACategories.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTACategories.m; path = Common/PTACategories.m; sourceTree = "<group>"; };
 		C8C0CD54196A26C4001EF37F /* PTAParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTAParser.h; path = Experimental/TextView/PTAParser.h; sourceTree = "<group>"; };
@@ -144,6 +147,8 @@
 				C89C532819B5424900A177E0 /* PTADocumentViewController.m */,
 				C89C531A19B3F49A00A177E0 /* PTADocumentCollectionViewController.h */,
 				C89C531B19B3F49A00A177E0 /* PTADocumentCollectionViewController.m */,
+				C8BDF8681A16EC6800F6AB2A /* PTAComposeBarButtonItem.h */,
+				C8BDF8691A16EC6800F6AB2A /* PTAComposeBarButtonItem.m */,
 			);
 			name = Nibs;
 			sourceTree = "<group>";
@@ -399,6 +404,7 @@
 				C8A098D11A1054C60075560F /* PTAFilesystemManager.m in Sources */,
 				C89C532919B5424900A177E0 /* PTADocumentViewController.m in Sources */,
 				C8C0CD53196A26B6001EF37F /* PTACategories.m in Sources */,
+				C8BDF86A1A16EC6800F6AB2A /* PTAComposeBarButtonItem.m in Sources */,
 				C8C42F67196745A80041645E /* PTAAppDelegate.m in Sources */,
 				C8C42F63196745A80041645E /* main.m in Sources */,
 			);
