@@ -7,6 +7,7 @@
 //
 
 #import "PTAComposeBarButtonItem.h"
+#import "PTAQuickComposeViewController.h"
 
 @implementation PTAComposeBarButtonItem {
   __weak UIViewController *_controller;
@@ -26,7 +27,10 @@
 }
 
 - (void)handleTap:(id)sender {
-
+  PTAQuickComposeViewController *vc = [[PTAQuickComposeViewController alloc] initWithFilesystemManager:_manager];
+  UINavigationController *navigationController =
+      [[UINavigationController alloc] initWithRootViewController:vc];
+  [_controller.navigationController presentViewController:navigationController animated:YES completion:nil];
 }
 
 @end

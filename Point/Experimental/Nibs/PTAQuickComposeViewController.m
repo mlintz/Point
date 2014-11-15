@@ -7,7 +7,30 @@
 //
 
 #import "PTAQuickComposeViewController.h"
+#import "PTAComposeBarButtonItem.h"
 
-@implementation PTAQuickComposeViewController
+@implementation PTAQuickComposeViewController {
+  PTAFilesystemManager *_filesystemManager;
+}
+
+- (instancetype)init {
+  [self doesNotRecognizeSelector:_cmd];
+  return nil;
+}
+
+- (instancetype)initWithFilesystemManager:(PTAFilesystemManager *)filesystemManager {
+  NSParameterAssert(filesystemManager);
+  self = [super init];
+  if (self) {
+    _filesystemManager = filesystemManager;
+    self.navigationItem.title = @"Foo";
+  }
+  return self;
+}
+
+- (void)loadView {
+  self.view = [[UIView alloc] init];
+  self.view.backgroundColor = [UIColor cyanColor];
+}
 
 @end
