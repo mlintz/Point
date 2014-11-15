@@ -17,6 +17,8 @@
 - (void)directoryDidChange:(PTADirectory *)directory;
 @end
 
+//  Task(mlintz): Maybe separate into a collection of protocols grouping functions by task.
+//    e.g. Writers, Openers, Directors
 @interface PTAFilesystemManager : NSObject
 
 @property(nonatomic, readonly) PTADirectory *directory;
