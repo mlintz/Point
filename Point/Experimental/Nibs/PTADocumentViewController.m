@@ -49,7 +49,7 @@
 }
 
 - (void)dealloc {
-  [_filesystemManager closeFileForPath:_file.info.path];
+  [_filesystemManager releaseFileForPath:_file.info.path];
 }
 
 - (void)loadView {

@@ -26,13 +26,40 @@
 
 @end
 
+@interface PTAFileRetainEntry : NSObject
+
+@property(nonatomic, readonly) DBFile *file;
+@property(nonatomic, assign) NSInteger count;  // default 1
+
+- (instancetype)initWithFile:(DBFile *)file;
+
+@end
+
+@implementation PTAFileRetainEntry
+
+- (instancetype)init {
+  [self doesNotRecognizeSelector:_cmd];
+  return nil;
+}
+
+- (instancetype)initWithFile:(DBFile *)file {
+  self = [super init];
+  if (self) {
+    _file = file;
+    _count = 1;
+  }
+  return self;
+}
+
+@end
+
 @implementation PTAFilesystemManager {
   DBFilesystem *_filesystem;
   DBPath *_rootPath;
 
   NSMutableDictionary *_fileObservers;  // DBPath -> NSHashTable<PTAFileObserver>
   NSHashTable *_directoryObservers;  // PTADirectoryObserver
-  NSMutableDictionary *_filesMap;  // DBPath -> DBFile
+  NSMutableDictionary *_filesMap;  // DBPath -> PTAFileRetainEntry
 
   NSMutableSet *_pathsNeedingDispatch;
   BOOL _filesystemNeedsDispatch;
@@ -120,7 +147,9 @@
 - (PTAFile *)openFileForPath:(DBPath *)path {
   NSAssert(path, @"path must be non-nil");
   if (_filesMap[path] != nil) {
-    return [self createFile:_filesMap[path]];
+    PTAFileRetainEntry *entry = _filesMap[path];
+    entry.count++;
+    return [self createFile:entry.file];
   }
   DBError *error;
   DBFile *file = [_filesystem openFile:path error:&error];
@@ -128,7 +157,7 @@
     NSAssert([error code] == DBErrorParamsNotFound, @"Received non DBErrorParamsNotFound error: %@", error.localizedDescription);
     return nil;
   }
-  _filesMap[path] = file;
+  _filesMap[path] = [[PTAFileRetainEntry alloc] initWithFile:file];
   __weak id weakSelf = self;
   __weak id weakFile = file;
   [file addObserver:self block:^{
@@ -148,10 +177,13 @@
   return [self createFile:file];
 }
 
-- (void)closeFileForPath:(DBPath *)path {
-  DBFile *file = _filesMap[path];
-  [file close];
-  [_filesMap removeObjectForKey:path];
+- (void)releaseFileForPath:(DBPath *)path {
+  PTAFileRetainEntry *entry = _filesMap[path];
+  entry.count--;
+  if (!entry.count) {
+    [entry.file close];
+    [_filesMap removeObjectForKey:path];
+  }
 }
 
 - (void)writeString:(NSString *)string toFileAtPath:(DBPath *)path {
@@ -178,8 +210,8 @@
 
 - (void)performFileOperation:(BOOL (^)(DBFile *file, DBError **error))operation
                      forPath:(DBPath *)path {
-  NSAssert(path, @"path must be non-nil");
-  DBFile *file = _filesMap[path];
+  NSParameterAssert(path);
+  DBFile *file = [_filesMap[path] file];
   NSAssert(file, @"No open file at path %@. Paths: %@", path, _filesMap.allKeys);
   NSAssert(file.open, @"File must be open to write to it.");
   DBError *error;
