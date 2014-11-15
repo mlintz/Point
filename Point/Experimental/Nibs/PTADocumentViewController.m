@@ -22,6 +22,7 @@
   BOOL _isCached;
   PTAFile *_file;
   PTAFilesystemManager *_filesystemManager;
+  UIAlertController *_alertController;
 }
 
 - (instancetype)init {
@@ -84,22 +85,22 @@
 - (void)updateView {
   BOOL isTextViewHidden = YES;
   BOOL isSpinnerHidden = YES;
-  UIAlertController *alertController;
+  [self dismissAlert];
   if (_file.error) {
     UIAlertAction *action = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
       [self.navigationController popViewControllerAnimated:YES];
     }];
     NSString *message = [NSString stringWithFormat:@"File error: %@", _file.error.localizedDescription];
-    alertController = [UIAlertController alertControllerWithTitle:@"Error" message:message preferredStyle:UIAlertControllerStyleAlert];
-    [alertController addAction:action];
+    _alertController = [UIAlertController alertControllerWithTitle:@"Error" message:message preferredStyle:UIAlertControllerStyleAlert];
+    [_alertController addAction:action];
   } else if (_file.hasNewerVersion) {
     PTAFilesystemManager *manager = _filesystemManager;
     DBPath *path = _file.info.path;
     UIAlertAction *action = [UIAlertAction actionWithTitle:@"Update" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
       [manager updateFileForPath:path];
     }];
-    alertController = [UIAlertController alertControllerWithTitle:@"Alert" message:@"Newer version of file available" preferredStyle:UIAlertControllerStyleAlert];
-    [alertController addAction:action];
+    _alertController = [UIAlertController alertControllerWithTitle:@"Alert" message:@"Newer version of file available" preferredStyle:UIAlertControllerStyleAlert];
+    [_alertController addAction:action];
   } else if (!_file.isOpen || !_file.cached) {
     isSpinnerHidden = NO;
   } else {
@@ -114,9 +115,14 @@
   } else {
     [_spinnerView startAnimating];
   }
-  if (alertController) {
-    [self presentViewController:alertController animated:YES completion:nil];
+  if (_alertController) {
+    [self presentViewController:_alertController animated:YES completion:nil];
   }  
+}
+
+- (void)dismissAlert {
+  [_alertController dismissViewControllerAnimated:YES completion:nil];
+  _alertController = nil;
 }
 
 @end
