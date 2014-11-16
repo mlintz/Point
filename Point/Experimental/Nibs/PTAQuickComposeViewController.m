@@ -9,6 +9,10 @@
 #import "PTAQuickComposeViewController.h"
 #import "PTAComposeBarButtonItem.h"
 #import "PTAQuickComposeView.h"
+#import "PTAFilesystemManager.h"
+
+@interface PTAQuickComposeViewController ()<PTAQuickComposeDelegate>
+@end
 
 @implementation PTAQuickComposeViewController {
   PTAFilesystemManager *_filesystemManager;
@@ -31,11 +35,26 @@
 }
 
 - (void)loadView {
-  self.view = [[PTAQuickComposeView alloc] init];
+  PTAQuickComposeView *view = [[PTAQuickComposeView alloc] init];
+  view.delegate = self;
+  self.view = view;
 }
 
 - (void)handleClose:(id)sender {
   [self.navigationController dismissViewControllerAnimated:self completion:nil];
+}
+
+- (void)quickComposeViewdidTapAddToInbox:(PTAQuickComposeView *)view withText:(NSString *)text {
+  if (!text.length) {
+    return;
+  }
+  [_filesystemManager appendTextToInboxFile:text];
+  [self.navigationController dismissViewControllerAnimated:YES completion:nil];
+  // XXX(mlintz): Show toast
+}
+
+- (void)quickComposeViewdidTapAddToOther:(PTAQuickComposeView *)view withText:(NSString *)text {
+  // no-op
 }
 
 @end

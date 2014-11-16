@@ -56,6 +56,7 @@
 @implementation PTAFilesystemManager {
   DBFilesystem *_filesystem;
   DBPath *_rootPath;
+  DBPath *_inboxFilePath;
 
   NSMutableDictionary *_fileObservers;  // DBPath -> NSHashTable<PTAFileObserver>
   NSHashTable *_directoryObservers;  // PTADirectoryObserver
@@ -70,12 +71,17 @@
   return nil;
 }
 
-- (instancetype)initWithFilesystem:(DBFilesystem *)fileSystem rootPath:(DBPath *)rootPath {
-  NSAssert(fileSystem && rootPath, @"fileSystem must be non-nil.");
+- (instancetype)initWithFilesystem:(DBFilesystem *)fileSystem
+                          rootPath:(DBPath *)rootPath
+                     inboxFilePath:(DBPath *)inboxFilePath {
+  NSParameterAssert(fileSystem);
+  NSParameterAssert(rootPath);
+  NSParameterAssert(inboxFilePath);
   self = [super init];
   if (self) {
     _filesystem = fileSystem;
     _rootPath = rootPath;
+    _inboxFilePath = inboxFilePath;
     _fileObservers = [NSMutableDictionary dictionary];
     _directoryObservers = [NSHashTable weakObjectsHashTable];
     _pathsNeedingDispatch = [NSMutableSet set];
@@ -145,7 +151,7 @@
 }
 
 - (PTAFile *)openFileForPath:(DBPath *)path {
-  NSAssert(path, @"path must be non-nil");
+  NSParameterAssert(path);
   if (_filesMap[path] != nil) {
     PTAFileRetainEntry *entry = _filesMap[path];
     entry.count++;
@@ -155,7 +161,8 @@
   DBFile *file = [_filesystem openFile:path error:&error];
   if (error || !file) {
     NSAssert([error code] == DBErrorParamsNotFound, @"Received non DBErrorParamsNotFound error: %@", error.localizedDescription);
-    return nil;
+    file = [_filesystem createFile:path error:&error];
+    NSAssert(!error, @"Error creating file, %@", file);
   }
   _filesMap[path] = [[PTAFileRetainEntry alloc] initWithFile:file];
   __weak id weakSelf = self;
@@ -179,6 +186,7 @@
 
 - (void)releaseFileForPath:(DBPath *)path {
   PTAFileRetainEntry *entry = _filesMap[path];
+  NSAssert(entry.count > 0, @"Must have non-zero entry count. Entry: (%@)", entry);
   entry.count--;
   if (!entry.count) {
     [entry.file close];
@@ -194,6 +202,7 @@
 }
 
 - (void)appendString:(NSString *)string toFileAtPath:(DBPath *)path {
+  string = [NSString stringWithFormat:@"\n%@", string];
   [self performFileOperation:^BOOL(DBFile *file, DBError *__autoreleasing *error) {
     NSAssert(!file.newerStatus, @"File must be fully synced.");
     return [file appendString:string error:error];
@@ -276,6 +285,12 @@
   for (id<PTAFileObserver> observer in fileObservers.objectEnumerator) {
     [observer fileDidChange:ptafile];
   }
+}
+
+- (void)appendTextToInboxFile:(NSString *)text {
+  [self openFileForPath:_inboxFilePath];
+  [self appendString:text toFileAtPath:_inboxFilePath];
+  [self releaseFileForPath:_inboxFilePath];
 }
 
 @end

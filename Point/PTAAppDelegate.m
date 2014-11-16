@@ -14,6 +14,8 @@
 #import "PTADocumentCollectionViewController.h"
 #import "PTAFilesystemManager.h"
 
+static NSString *kInboxFileName = @"!!inbox.txt";
+
 @implementation PTAAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
@@ -27,7 +29,9 @@
   if (accountManager.linkedAccount) {
     DBFilesystem *filesystem = [[DBFilesystem alloc] initWithAccount:accountManager.linkedAccount];
     PTAFilesystemManager *manager =
-        [[PTAFilesystemManager alloc] initWithFilesystem:filesystem rootPath:DBPath.root];
+        [[PTAFilesystemManager alloc] initWithFilesystem:filesystem
+                                                rootPath:DBPath.root
+                                           inboxFilePath:[DBPath.root childPath:kInboxFileName]];
     rootViewController = [[PTADocumentCollectionViewController alloc] initWithFilesystemManager:manager];
   } else {
     rootViewController = [[UIViewController alloc] init];

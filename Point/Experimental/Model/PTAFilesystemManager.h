@@ -23,7 +23,9 @@
 
 @property(nonatomic, readonly) PTADirectory *directory;
 
-- (instancetype)initWithFilesystem:(DBFilesystem *)fileSystem rootPath:(DBPath *)rootPath;
+- (instancetype)initWithFilesystem:(DBFilesystem *)fileSystem
+                          rootPath:(DBPath *)rootPath
+                     inboxFilePath:(DBPath *)inboxFilePath;
 
 // add/remove parameters must be non-nil
 - (void)addDirectoryObserver:(id<PTADirectoryObserver>)observer;
@@ -34,7 +36,7 @@
 - (void)removeFileObserver:(id<PTAFileObserver>)observer forPath:(DBPath *)path;
 - (void)removeFileObserver:(id<PTAFileObserver>)observer;
 
-// Returns nil if no file at path.
+// Creates file if it doesn't exist
 - (PTAFile *)openFileForPath:(DBPath *)path;
 - (void)releaseFileForPath:(DBPath *)path;
 - (void)updateFileForPath:(DBPath *)path;
@@ -44,6 +46,6 @@
 - (void)appendString:(NSString *)string toFileAtPath:(DBPath *)path;
 
 // Inbox file doesn't need to be opened to append
-- (void)appendStringToInboxFile:(NSString *)string;
+- (void)appendTextToInboxFile:(NSString *)string;
 
 @end

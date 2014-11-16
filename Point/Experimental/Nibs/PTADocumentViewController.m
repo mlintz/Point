@@ -37,6 +37,8 @@
   self = [super init];
   if (self) {
     _filesystemManager = manager;
+    
+    // XXX(mlintz): open and close file in viewWillAppear/viewDidDisappear
     [_filesystemManager addFileObserver:self forPath:path];
     _file = [_filesystemManager openFileForPath:path];
     NSAssert(!_file.error, @"Error opening file: %@", _file.error);
