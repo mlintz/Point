@@ -16,12 +16,6 @@
 
 #import "PTADocumentCollectionViewController.h"
 
-#import "PTADirectory.h"
-#import "PTADocumentViewController.h"
-#import "PTAFilesystemManager.h"
-#import "PTAFileInfo.h"
-#import "PTAComposeBarButtonItem.h"
-
 static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 
 @interface NSArray (DocumentCollection)
@@ -75,10 +69,6 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
     [_dateFormatter setTimeStyle:NSDateFormatterShortStyle];
 
     _filesystemManager = filesystemManager;
-
-    self.navigationItem.title = @"All Documents";
-    self.navigationItem.rightBarButtonItem =
-        [[PTAComposeBarButtonItem alloc] initWithController:self filesystemManager:_filesystemManager];
   
     [filesystemManager addDirectoryObserver:self];
     _directory = _filesystemManager.directory;
@@ -161,8 +151,9 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 
   PTAFileInfo *fileInfo = _directory.fileInfos[indexPath.row];
-  PTADocumentViewController *vc = [[PTADocumentViewController alloc] initWithManager:_filesystemManager path:fileInfo.path];
-  [self.navigationController pushViewController:vc animated:YES];
+  [self.delegate documentCollectionController:self didSelectPath:fileInfo.path];
+//  PTADocumentViewController *vc = [[PTADocumentViewController alloc] initWithManager:_filesystemManager path:fileInfo.path];
+//  [self.navigationController pushViewController:vc animated:YES];
 
 //  DBFileInfo *fileInfo = _fileInfos[indexPath.row];
 //  NSError *error;

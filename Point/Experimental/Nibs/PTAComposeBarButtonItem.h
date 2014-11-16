@@ -7,8 +7,17 @@
 //
 
 @class PTAFilesystemManager;
+@class PTAComposeBarButtonItem;
+
+@protocol PTAComposeBarButtonDelegate <NSObject>
+
+- (void)composeItemWillPresentCompose:(PTAComposeBarButtonItem *)item;
+
+@end
 
 @interface PTAComposeBarButtonItem : UIBarButtonItem
+
+@property(nonatomic, weak) id<PTAComposeBarButtonDelegate> delegate;
 
 // controller is not retained
 - (instancetype)initWithController:(UIViewController *)controller

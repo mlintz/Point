@@ -8,10 +8,6 @@
 
 #import "PTAFilesystemManager.h"
 
-#import "PTADirectory.h"
-#import "PTAFile.h"
-#import "PTAFileInfo.h"
-
 @interface NSArray (DocumentCollection)
 - (NSArray *)pta_filteredArrayWithPathExtension:(NSString *)pathExtension;
 @end
@@ -198,7 +194,7 @@
 
 - (void)writeString:(NSString *)string toFileAtPath:(DBPath *)path {
   [self performFileOperation:^BOOL(DBFile *file, DBError *__autoreleasing *error) {
-    NSAssert(!file.newerStatus, @"File must be fully synced.");
+    NSAssert(!file.newerStatus, @"Attempting to write string to file when newer version is available.");
     return [file writeString:string error:error];
   } forPath:path];
 }
@@ -206,7 +202,7 @@
 - (void)appendString:(NSString *)string toFileAtPath:(DBPath *)path {
   string = [NSString stringWithFormat:@"\n%@", string];
   [self performFileOperation:^BOOL(DBFile *file, DBError *__autoreleasing *error) {
-    NSAssert(!file.newerStatus, @"File must be fully synced.");
+    NSAssert(!file.newerStatus, @"Attempting to append string to file when newer version is available.");
     return [file appendString:string error:error];
   } forPath:path];
 }

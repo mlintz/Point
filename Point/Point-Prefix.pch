@@ -15,5 +15,9 @@
   #import <Foundation/Foundation.h>
 #endif
 
-#import "PTACategories.h"
 #import <Dropbox/Dropbox.h>
+#import "PTACategories.h"
+#import "PTAFile.h"
+#import "PTAFileInfo.h"
+#import "PTAFilesystemManager.h"
+#import "PTADirectory.h"

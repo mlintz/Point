@@ -7,8 +7,18 @@
 //
 
 @class PTAFilesystemManager;
+@class PTADocumentCollectionViewController;
+
+@protocol PTADocumentCollectionDelegate <NSObject>
+
+- (void)documentCollectionController:(PTADocumentCollectionViewController *)controller
+                       didSelectPath:(DBPath *)path;
+
+@end
 
 @interface PTADocumentCollectionViewController : UIViewController
+
+@property(nonatomic, weak) id<PTADocumentCollectionDelegate> delegate;
 
 - (instancetype)initWithFilesystemManager:(PTAFilesystemManager *)filesystemManager;
 

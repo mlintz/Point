@@ -11,7 +11,7 @@
 #import <Dropbox/Dropbox.h>
 
 #import "PTAAuthenticationValues.h"
-#import "PTADocumentCollectionViewController.h"
+#import "PTAMainCollectionViewController.h"
 #import "PTAFilesystemManager.h"
 
 static NSString *kInboxFileName = @"!!inbox.txt";
@@ -32,7 +32,7 @@ static NSString *kInboxFileName = @"!!inbox.txt";
         [[PTAFilesystemManager alloc] initWithFilesystem:filesystem
                                                 rootPath:DBPath.root
                                            inboxFilePath:[DBPath.root childPath:kInboxFileName]];
-    rootViewController = [[PTADocumentCollectionViewController alloc] initWithFilesystemManager:manager];
+    rootViewController = [[PTAMainCollectionViewController alloc] initWithFilesystemManager:manager];
   } else {
     rootViewController = [[UIViewController alloc] init];
   }

@@ -121,17 +121,12 @@
   _spinnerView.center = _textView.center;
 }
 
-- (void)viewWillAppear:(BOOL)animated {
-  [super viewWillAppear:animated];
+- (void)viewDidAppear:(BOOL)animated {
+  [super viewDidAppear:animated];
   [_filesystemManager addFileObserver:self forPath:_path];
   _file = [_filesystemManager openFileForPath:_path];
   NSAssert(!_file.error, @"Error opening file: %@", _file.error);
-
   [self updateView];
-}
-
-- (void)viewDidAppear:(BOOL)animated {
-  [super viewDidAppear:animated];
 //  [_textView becomeFirstResponder];
 }
 
@@ -140,7 +135,6 @@
   [_filesystemManager removeFileObserver:self forPath:_path];
   [_filesystemManager releaseFileForPath:_path];
   _file = nil;
-  [self updateView];
 }
 
 #pragma mark - UITextViewDelegate
@@ -185,15 +179,15 @@
     [_spinnerView startAnimating];
   }
 
-  if (isNewVersionAlertVisible && !_newVersionAlertController.view.window) {
+  if (isNewVersionAlertVisible && ![_newVersionAlertController pta_isActive]) {
     [self presentViewController:_newVersionAlertController animated:YES completion:nil];
-  } else if (!isNewVersionAlertVisible && _newVersionAlertController.view.window) {
+  } else if (!isNewVersionAlertVisible && [_newVersionAlertController pta_isActive]) {
     [self dismissViewControllerAnimated:YES completion:nil];
   }
   
-  if (isErrorAlertVisible && !_errorAlertController.view.window) {
+  if (isErrorAlertVisible && ![_errorAlertController pta_isActive]) {
     [self presentViewController:_errorAlertController animated:YES completion:nil];
-  } else if (!isErrorAlertVisible && _errorAlertController.view.window) {
+  } else if (!isErrorAlertVisible && [_errorAlertController pta_isActive]) {
     [self dismissViewControllerAnimated:YES completion:nil];
   }
 }

@@ -27,6 +27,7 @@
 }
 
 - (void)handleTap:(id)sender {
+  [self.delegate composeItemWillPresentCompose:self];
   PTAQuickComposeViewController *vc = [[PTAQuickComposeViewController alloc] initWithFilesystemManager:_manager];
   UINavigationController *navigationController =
       [[UINavigationController alloc] initWithRootViewController:vc];

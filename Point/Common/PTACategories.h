@@ -20,3 +20,7 @@ extern CGPoint PTAPointAdd(CGPoint point1, CGPoint point2);
 @interface UIView (PTAUtil)
 - (UIImage *)snapshotCroppedToRect:(CGRect)rect;
 @end
+
+@interface UIViewController (PTAUtil)
+- (BOOL)pta_isActive;
+@end

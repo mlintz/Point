@@ -47,3 +47,11 @@ CGPoint PTAPointAdd(CGPoint point1, CGPoint point2) {
 }
 
 @end
+
+@implementation UIViewController (PTAUtil)
+
+- (BOOL)pta_isActive {
+  return self.isViewLoaded && (self.view.window != nil);
+}
+
+@end
