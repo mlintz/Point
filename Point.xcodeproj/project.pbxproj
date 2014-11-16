@@ -10,16 +10,10 @@
 		321BA202F50E40C79FC3BAC5 /* libPods-Point.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7299634D4533460690EA4A3C /* libPods-Point.a */; };
 		C87ACDFE196A4941008E8B50 /* PTAAuthenticationValues.m in Sources */ = {isa = PBXBuildFile; fileRef = C87ACDFD196A4941008E8B50 /* PTAAuthenticationValues.m */; };
 		C87ACE00196A4DA1008E8B50 /* credentials.json in Resources */ = {isa = PBXBuildFile; fileRef = C87ACDFF196A4DA1008E8B50 /* credentials.json */; };
-		C89C531C19B3F49A00A177E0 /* PTADocumentCollectionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C89C531B19B3F49A00A177E0 /* PTADocumentCollectionViewController.m */; };
-		C89C532919B5424900A177E0 /* PTADocumentViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C89C532819B5424900A177E0 /* PTADocumentViewController.m */; };
 		C8A098C81A1049C80075560F /* PTAFile.m in Sources */ = {isa = PBXBuildFile; fileRef = C8A098C71A1049C80075560F /* PTAFile.m */; };
 		C8A098CE1A104B790075560F /* PTAFileInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = C8A098CD1A104B790075560F /* PTAFileInfo.m */; };
 		C8A098D11A1054C60075560F /* PTAFilesystemManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C8A098D01A1054C60075560F /* PTAFilesystemManager.m */; };
 		C8A098D41A106C5E0075560F /* PTADirectory.m in Sources */ = {isa = PBXBuildFile; fileRef = C8A098D31A106C5E0075560F /* PTADirectory.m */; };
-		C8BDF86A1A16EC6800F6AB2A /* PTAComposeBarButtonItem.m in Sources */ = {isa = PBXBuildFile; fileRef = C8BDF8691A16EC6800F6AB2A /* PTAComposeBarButtonItem.m */; };
-		C8BDF86D1A17380C00F6AB2A /* PTAQuickComposeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C8BDF86C1A17380C00F6AB2A /* PTAQuickComposeViewController.m */; };
-		C8BDF8701A17405000F6AB2A /* PTAQuickComposeView.m in Sources */ = {isa = PBXBuildFile; fileRef = C8BDF86F1A17405000F6AB2A /* PTAQuickComposeView.m */; };
-		C8BDF8771A185C8B00F6AB2A /* PTAMainCollectionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C8BDF8761A185C8B00F6AB2A /* PTAMainCollectionViewController.m */; };
 		C8C0CD53196A26B6001EF37F /* PTACategories.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C0CD52196A26B6001EF37F /* PTACategories.m */; };
 		C8C0CD5A196A26C4001EF37F /* PTAParser.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C0CD55196A26C4001EF37F /* PTAParser.m */; };
 		C8C0CD5B196A26C4001EF37F /* PTATextEditorView.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C0CD57196A26C4001EF37F /* PTATextEditorView.m */; };
@@ -36,7 +30,13 @@
 		C8C42F72196745A80041645E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8C42F5A196745A80041645E /* UIKit.framework */; };
 		C8C42F7A196745A80041645E /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = C8C42F78196745A80041645E /* InfoPlist.strings */; };
 		C8C42F7C196745A80041645E /* PointTests.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C42F7B196745A80041645E /* PointTests.m */; };
-		C8EB1E061A187F720057C7F6 /* PTAAppendTextSelectionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C8EB1E051A187F720057C7F6 /* PTAAppendTextSelectionViewController.m */; };
+		C8EB1E0F1A19284B0057C7F6 /* PTADocumentCollectionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C8EB1E0C1A19284B0057C7F6 /* PTADocumentCollectionViewController.m */; };
+		C8EB1E101A19284B0057C7F6 /* PTADocumentViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C8EB1E0E1A19284B0057C7F6 /* PTADocumentViewController.m */; };
+		C8EB1E191A1928850057C7F6 /* PTAAppendTextSelectionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C8EB1E121A1928850057C7F6 /* PTAAppendTextSelectionViewController.m */; };
+		C8EB1E1A1A1928850057C7F6 /* PTAComposeBarButtonItem.m in Sources */ = {isa = PBXBuildFile; fileRef = C8EB1E141A1928850057C7F6 /* PTAComposeBarButtonItem.m */; };
+		C8EB1E1B1A1928850057C7F6 /* PTAQuickComposeView.m in Sources */ = {isa = PBXBuildFile; fileRef = C8EB1E161A1928850057C7F6 /* PTAQuickComposeView.m */; };
+		C8EB1E1C1A1928850057C7F6 /* PTAQuickComposeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C8EB1E181A1928850057C7F6 /* PTAQuickComposeViewController.m */; };
+		C8EB1E1F1A1928B40057C7F6 /* PTAMainCollectionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C8EB1E1E1A1928B40057C7F6 /* PTAMainCollectionViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,10 +56,6 @@
 		C87ACDFC196A4941008E8B50 /* PTAAuthenticationValues.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTAAuthenticationValues.h; path = Experimental/Dropbox/PTAAuthenticationValues.h; sourceTree = "<group>"; };
 		C87ACDFD196A4941008E8B50 /* PTAAuthenticationValues.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTAAuthenticationValues.m; path = Experimental/Dropbox/PTAAuthenticationValues.m; sourceTree = "<group>"; };
 		C87ACDFF196A4DA1008E8B50 /* credentials.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = credentials.json; sourceTree = SOURCE_ROOT; };
-		C89C531A19B3F49A00A177E0 /* PTADocumentCollectionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTADocumentCollectionViewController.h; path = Experimental/Nibs/PTADocumentCollectionViewController.h; sourceTree = "<group>"; };
-		C89C531B19B3F49A00A177E0 /* PTADocumentCollectionViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTADocumentCollectionViewController.m; path = Experimental/Nibs/PTADocumentCollectionViewController.m; sourceTree = "<group>"; };
-		C89C532719B5424900A177E0 /* PTADocumentViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTADocumentViewController.h; path = Experimental/Nibs/PTADocumentViewController.h; sourceTree = "<group>"; };
-		C89C532819B5424900A177E0 /* PTADocumentViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTADocumentViewController.m; path = Experimental/Nibs/PTADocumentViewController.m; sourceTree = "<group>"; };
 		C8A098C61A1049C80075560F /* PTAFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTAFile.h; path = Experimental/Model/PTAFile.h; sourceTree = "<group>"; };
 		C8A098C71A1049C80075560F /* PTAFile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTAFile.m; path = Experimental/Model/PTAFile.m; sourceTree = "<group>"; };
 		C8A098CC1A104B790075560F /* PTAFileInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTAFileInfo.h; path = Experimental/Model/PTAFileInfo.h; sourceTree = "<group>"; };
@@ -68,14 +64,6 @@
 		C8A098D01A1054C60075560F /* PTAFilesystemManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTAFilesystemManager.m; path = Experimental/Model/PTAFilesystemManager.m; sourceTree = "<group>"; };
 		C8A098D21A106C5E0075560F /* PTADirectory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTADirectory.h; path = Experimental/Model/PTADirectory.h; sourceTree = "<group>"; };
 		C8A098D31A106C5E0075560F /* PTADirectory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTADirectory.m; path = Experimental/Model/PTADirectory.m; sourceTree = "<group>"; };
-		C8BDF8681A16EC6800F6AB2A /* PTAComposeBarButtonItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTAComposeBarButtonItem.h; path = Experimental/Nibs/PTAComposeBarButtonItem.h; sourceTree = "<group>"; };
-		C8BDF8691A16EC6800F6AB2A /* PTAComposeBarButtonItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTAComposeBarButtonItem.m; path = Experimental/Nibs/PTAComposeBarButtonItem.m; sourceTree = "<group>"; };
-		C8BDF86B1A17380C00F6AB2A /* PTAQuickComposeViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTAQuickComposeViewController.h; path = Experimental/Nibs/PTAQuickComposeViewController.h; sourceTree = "<group>"; };
-		C8BDF86C1A17380C00F6AB2A /* PTAQuickComposeViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTAQuickComposeViewController.m; path = Experimental/Nibs/PTAQuickComposeViewController.m; sourceTree = "<group>"; };
-		C8BDF86E1A17405000F6AB2A /* PTAQuickComposeView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTAQuickComposeView.h; path = Experimental/Nibs/PTAQuickComposeView.h; sourceTree = "<group>"; };
-		C8BDF86F1A17405000F6AB2A /* PTAQuickComposeView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTAQuickComposeView.m; path = Experimental/Nibs/PTAQuickComposeView.m; sourceTree = "<group>"; };
-		C8BDF8751A185C8B00F6AB2A /* PTAMainCollectionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTAMainCollectionViewController.h; path = Experimental/Nibs/PTAMainCollectionViewController.h; sourceTree = "<group>"; };
-		C8BDF8761A185C8B00F6AB2A /* PTAMainCollectionViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTAMainCollectionViewController.m; path = Experimental/Nibs/PTAMainCollectionViewController.m; sourceTree = "<group>"; };
 		C8C0CD51196A26B6001EF37F /* PTACategories.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTACategories.h; path = Common/PTACategories.h; sourceTree = "<group>"; };
 		C8C0CD52196A26B6001EF37F /* PTACategories.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTACategories.m; path = Common/PTACategories.m; sourceTree = "<group>"; };
 		C8C0CD54196A26C4001EF37F /* PTAParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTAParser.h; path = Experimental/TextView/PTAParser.h; sourceTree = "<group>"; };
@@ -100,8 +88,20 @@
 		C8C42F77196745A80041645E /* PointTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "PointTests-Info.plist"; sourceTree = "<group>"; };
 		C8C42F79196745A80041645E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		C8C42F7B196745A80041645E /* PointTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PointTests.m; sourceTree = "<group>"; };
-		C8EB1E041A187F720057C7F6 /* PTAAppendTextSelectionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTAAppendTextSelectionViewController.h; path = Experimental/Nibs/PTAAppendTextSelectionViewController.h; sourceTree = "<group>"; };
-		C8EB1E051A187F720057C7F6 /* PTAAppendTextSelectionViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTAAppendTextSelectionViewController.m; path = Experimental/Nibs/PTAAppendTextSelectionViewController.m; sourceTree = "<group>"; };
+		C8EB1E0B1A19284B0057C7F6 /* PTADocumentCollectionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTADocumentCollectionViewController.h; path = Common/PTADocumentCollectionViewController.h; sourceTree = "<group>"; };
+		C8EB1E0C1A19284B0057C7F6 /* PTADocumentCollectionViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTADocumentCollectionViewController.m; path = Common/PTADocumentCollectionViewController.m; sourceTree = "<group>"; };
+		C8EB1E0D1A19284B0057C7F6 /* PTADocumentViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTADocumentViewController.h; path = Common/PTADocumentViewController.h; sourceTree = "<group>"; };
+		C8EB1E0E1A19284B0057C7F6 /* PTADocumentViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTADocumentViewController.m; path = Common/PTADocumentViewController.m; sourceTree = "<group>"; };
+		C8EB1E111A1928850057C7F6 /* PTAAppendTextSelectionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTAAppendTextSelectionViewController.h; path = "Experimental/Quick compose/PTAAppendTextSelectionViewController.h"; sourceTree = "<group>"; };
+		C8EB1E121A1928850057C7F6 /* PTAAppendTextSelectionViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTAAppendTextSelectionViewController.m; path = "Experimental/Quick compose/PTAAppendTextSelectionViewController.m"; sourceTree = "<group>"; };
+		C8EB1E131A1928850057C7F6 /* PTAComposeBarButtonItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTAComposeBarButtonItem.h; path = "Experimental/Quick compose/PTAComposeBarButtonItem.h"; sourceTree = "<group>"; };
+		C8EB1E141A1928850057C7F6 /* PTAComposeBarButtonItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTAComposeBarButtonItem.m; path = "Experimental/Quick compose/PTAComposeBarButtonItem.m"; sourceTree = "<group>"; };
+		C8EB1E151A1928850057C7F6 /* PTAQuickComposeView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTAQuickComposeView.h; path = "Experimental/Quick compose/PTAQuickComposeView.h"; sourceTree = "<group>"; };
+		C8EB1E161A1928850057C7F6 /* PTAQuickComposeView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTAQuickComposeView.m; path = "Experimental/Quick compose/PTAQuickComposeView.m"; sourceTree = "<group>"; };
+		C8EB1E171A1928850057C7F6 /* PTAQuickComposeViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTAQuickComposeViewController.h; path = "Experimental/Quick compose/PTAQuickComposeViewController.h"; sourceTree = "<group>"; };
+		C8EB1E181A1928850057C7F6 /* PTAQuickComposeViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTAQuickComposeViewController.m; path = "Experimental/Quick compose/PTAQuickComposeViewController.m"; sourceTree = "<group>"; };
+		C8EB1E1D1A1928B40057C7F6 /* PTAMainCollectionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PTAMainCollectionViewController.h; sourceTree = "<group>"; };
+		C8EB1E1E1A1928B40057C7F6 /* PTAMainCollectionViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PTAMainCollectionViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -162,27 +162,6 @@
 			name = Dropbox;
 			sourceTree = "<group>";
 		};
-		C89C531719B3F2DA00A177E0 /* Nibs */ = {
-			isa = PBXGroup;
-			children = (
-				C89C532719B5424900A177E0 /* PTADocumentViewController.h */,
-				C89C532819B5424900A177E0 /* PTADocumentViewController.m */,
-				C89C531A19B3F49A00A177E0 /* PTADocumentCollectionViewController.h */,
-				C89C531B19B3F49A00A177E0 /* PTADocumentCollectionViewController.m */,
-				C8BDF8681A16EC6800F6AB2A /* PTAComposeBarButtonItem.h */,
-				C8BDF8691A16EC6800F6AB2A /* PTAComposeBarButtonItem.m */,
-				C8BDF86B1A17380C00F6AB2A /* PTAQuickComposeViewController.h */,
-				C8BDF86C1A17380C00F6AB2A /* PTAQuickComposeViewController.m */,
-				C8BDF86E1A17405000F6AB2A /* PTAQuickComposeView.h */,
-				C8BDF86F1A17405000F6AB2A /* PTAQuickComposeView.m */,
-				C8BDF8751A185C8B00F6AB2A /* PTAMainCollectionViewController.h */,
-				C8BDF8761A185C8B00F6AB2A /* PTAMainCollectionViewController.m */,
-				C8EB1E041A187F720057C7F6 /* PTAAppendTextSelectionViewController.h */,
-				C8EB1E051A187F720057C7F6 /* PTAAppendTextSelectionViewController.m */,
-			);
-			name = Nibs;
-			sourceTree = "<group>";
-		};
 		C8C42F4A196745A80041645E = {
 			isa = PBXGroup;
 			children = (
@@ -222,8 +201,9 @@
 				C8C42F85196745B70041645E /* Experimental */,
 				C8C42F65196745A80041645E /* PTAAppDelegate.h */,
 				C8C42F66196745A80041645E /* PTAAppDelegate.m */,
+				C8EB1E1D1A1928B40057C7F6 /* PTAMainCollectionViewController.h */,
+				C8EB1E1E1A1928B40057C7F6 /* PTAMainCollectionViewController.m */,
 				C8C42F68196745A80041645E /* Images.xcassets */,
-				C8C42F8A196755F00041645E /* Common */,
 				C8C42F5D196745A80041645E /* Supporting Files */,
 			);
 			path = Point;
@@ -261,7 +241,8 @@
 		C8C42F85196745B70041645E /* Experimental */ = {
 			isa = PBXGroup;
 			children = (
-				C89C531719B3F2DA00A177E0 /* Nibs */,
+				C8C42F8A196755F00041645E /* Common */,
+				C8EB1E081A1927520057C7F6 /* Quick compose */,
 				C8441A3A197B6C010081D284 /* Model */,
 				C87ACDF5196A46E5008E8B50 /* Dropbox */,
 				C8C42F86196745D00041645E /* TextView */,
@@ -287,8 +268,27 @@
 			children = (
 				C8C0CD51196A26B6001EF37F /* PTACategories.h */,
 				C8C0CD52196A26B6001EF37F /* PTACategories.m */,
+				C8EB1E0B1A19284B0057C7F6 /* PTADocumentCollectionViewController.h */,
+				C8EB1E0C1A19284B0057C7F6 /* PTADocumentCollectionViewController.m */,
+				C8EB1E0D1A19284B0057C7F6 /* PTADocumentViewController.h */,
+				C8EB1E0E1A19284B0057C7F6 /* PTADocumentViewController.m */,
 			);
 			name = Common;
+			sourceTree = "<group>";
+		};
+		C8EB1E081A1927520057C7F6 /* Quick compose */ = {
+			isa = PBXGroup;
+			children = (
+				C8EB1E111A1928850057C7F6 /* PTAAppendTextSelectionViewController.h */,
+				C8EB1E121A1928850057C7F6 /* PTAAppendTextSelectionViewController.m */,
+				C8EB1E131A1928850057C7F6 /* PTAComposeBarButtonItem.h */,
+				C8EB1E141A1928850057C7F6 /* PTAComposeBarButtonItem.m */,
+				C8EB1E151A1928850057C7F6 /* PTAQuickComposeView.h */,
+				C8EB1E161A1928850057C7F6 /* PTAQuickComposeView.m */,
+				C8EB1E171A1928850057C7F6 /* PTAQuickComposeViewController.h */,
+				C8EB1E181A1928850057C7F6 /* PTAQuickComposeViewController.m */,
+			);
+			name = "Quick compose";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -424,23 +424,23 @@
 			buildActionMask = 2147483647;
 			files = (
 				C8C0CD5B196A26C4001EF37F /* PTATextEditorView.m in Sources */,
+				C8EB1E0F1A19284B0057C7F6 /* PTADocumentCollectionViewController.m in Sources */,
 				C8A098D41A106C5E0075560F /* PTADirectory.m in Sources */,
+				C8EB1E101A19284B0057C7F6 /* PTADocumentViewController.m in Sources */,
 				C8A098C81A1049C80075560F /* PTAFile.m in Sources */,
-				C8BDF8701A17405000F6AB2A /* PTAQuickComposeView.m in Sources */,
 				C87ACDFE196A4941008E8B50 /* PTAAuthenticationValues.m in Sources */,
+				C8EB1E1B1A1928850057C7F6 /* PTAQuickComposeView.m in Sources */,
 				C8C0CD5A196A26C4001EF37F /* PTAParser.m in Sources */,
-				C8BDF86D1A17380C00F6AB2A /* PTAQuickComposeViewController.m in Sources */,
+				C8EB1E191A1928850057C7F6 /* PTAAppendTextSelectionViewController.m in Sources */,
 				C8A098CE1A104B790075560F /* PTAFileInfo.m in Sources */,
-				C89C531C19B3F49A00A177E0 /* PTADocumentCollectionViewController.m in Sources */,
 				C8C0CD5C196A26C4001EF37F /* PTATextEditorViewController.m in Sources */,
-				C8EB1E061A187F720057C7F6 /* PTAAppendTextSelectionViewController.m in Sources */,
+				C8EB1E1F1A1928B40057C7F6 /* PTAMainCollectionViewController.m in Sources */,
 				C8A098D11A1054C60075560F /* PTAFilesystemManager.m in Sources */,
-				C89C532919B5424900A177E0 /* PTADocumentViewController.m in Sources */,
 				C8C0CD53196A26B6001EF37F /* PTACategories.m in Sources */,
-				C8BDF86A1A16EC6800F6AB2A /* PTAComposeBarButtonItem.m in Sources */,
-				C8BDF8771A185C8B00F6AB2A /* PTAMainCollectionViewController.m in Sources */,
 				C8C42F67196745A80041645E /* PTAAppDelegate.m in Sources */,
 				C8C42F63196745A80041645E /* main.m in Sources */,
+				C8EB1E1A1A1928850057C7F6 /* PTAComposeBarButtonItem.m in Sources */,
+				C8EB1E1C1A1928850057C7F6 /* PTAQuickComposeViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
