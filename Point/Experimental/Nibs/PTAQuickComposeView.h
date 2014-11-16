@@ -10,11 +10,14 @@
 
 @protocol PTAQuickComposeDelegate <NSObject>
 
-- (void)quickComposeViewdidTapAddToInbox:(PTAQuickComposeView *)view withText:(NSString *)text;
-- (void)quickComposeViewdidTapAddToOther:(PTAQuickComposeView *)view withText:(NSString *)text;
+- (void)quickComposeViewDidTapAddToInbox:(PTAQuickComposeView *)view withText:(NSString *)text;
+- (void)quickComposeViewDidTapAddToOther:(PTAQuickComposeView *)view withText:(NSString *)text;
 
 @end
 
 @interface PTAQuickComposeView : UIView
+
 @property(nonatomic, weak) id<PTAQuickComposeDelegate> delegate;
+@property(nonatomic, readonly) NSString *text;
+
 @end

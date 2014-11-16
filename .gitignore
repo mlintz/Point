@@ -3,3 +3,4 @@ credentials.json
 Point.xcworkspace/
 project.xcworkspace/
 Point.xcodeproj/xcuserdata/mlintz.xcuserdatad/xcdebugger/
+Podfile.lock

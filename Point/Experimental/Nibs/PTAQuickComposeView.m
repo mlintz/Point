@@ -63,12 +63,16 @@
   _textView.frame = CGRectMake(0, 0, CGRectGetWidth(self.bounds), 200);
 }
 
+- (NSString *)text {
+  return _textView.text;
+}
+
 - (void)handleInboxButtonTapped:(id)sender {
-  [self.delegate quickComposeViewdidTapAddToInbox:self withText:_textView.text];
+  [self.delegate quickComposeViewDidTapAddToInbox:self withText:_textView.text];
 }
 
 - (void)handleOtherButtonTapped:(id)sender {
-  [self.delegate quickComposeViewdidTapAddToOther:self withText:_textView.text];
+  [self.delegate quickComposeViewDidTapAddToOther:self withText:_textView.text];
 }
 
 - (void)handleViewTapped:(UITapGestureRecognizer *)recognizer {
