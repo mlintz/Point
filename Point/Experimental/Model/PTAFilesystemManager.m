@@ -162,24 +162,34 @@
     file = [_filesystem createFile:path error:&error];
     NSAssert(!error, @"Error creating file, %@", file);
   }
-  _filesMap[path] = [[PTAFileRetainEntry alloc] initWithFile:file];
-  __weak id weakSelf = self;
-  __weak id weakFile = file;
-  [file addObserver:self block:^{
-    PTAFilesystemManager *strongSelf = weakSelf;
-    DBFile *strongFile = weakFile;
-    if (!strongSelf || !strongFile) {
-      return;
-    }
-    [strongSelf->_pathsNeedingDispatch addObject:path];
-    dispatch_async(dispatch_get_main_queue(), ^{
-      if ([strongSelf->_pathsNeedingDispatch containsObject:path]) {
-        [strongSelf->_pathsNeedingDispatch removeObject:path];
-        [self publishFileChanged:strongFile];
-      }
-    });
-  }];
+  [self initializeRetainEntryAndBeginObservingFile:file];
   return [self createFile:file];
+}
+
+- (PTAFile *)createFileWithName:(NSString *)name {
+  NSParameterAssert(name);
+  NSParameterAssert(name.length);
+  DBError *error;
+  DBPath *path = [_rootPath childPath:name];
+  DBFile *file = [_filesystem createFile:path error:&error];
+  NSAssert(!error && file, @"Error creating file: %@", error.localizedDescription);
+  [self initializeRetainEntryAndBeginObservingFile:file];
+  return [self createFile:file];
+}
+
+- (BOOL)containsFileWithName:(NSString *)name {
+  DBError *error;
+  DBPath *path = [_rootPath childPath:name];
+  DBFileInfo *fileInfo = [_filesystem fileInfoForPath:path error:&error];
+
+  if (!error && fileInfo) {
+    return YES;
+  }
+  if ([error code] == DBErrorParamsNotFound) {
+    return NO;
+  }
+  NSAssert(NO, @"Unexpected error: %@", error.localizedDescription);
+  return nil;
 }
 
 - (void)releaseFileForPath:(DBPath *)path {
@@ -188,6 +198,7 @@
   entry.count--;
   if (!entry.count) {
     [entry.file close];
+    [entry.file removeObserver:self];
     [_filesMap removeObjectForKey:path];
   }
 }
@@ -289,6 +300,26 @@
   [self openFileForPath:_inboxFilePath];
   [self appendString:text toFileAtPath:_inboxFilePath];
   [self releaseFileForPath:_inboxFilePath];
+}
+
+- (void)initializeRetainEntryAndBeginObservingFile:(DBFile *)file {
+  _filesMap[file.info.path] = [[PTAFileRetainEntry alloc] initWithFile:file];
+  __weak id weakSelf = self;
+  __weak id weakFile = file;
+  [file addObserver:self block:^{
+    PTAFilesystemManager *strongSelf = weakSelf;
+    DBFile *strongFile = weakFile;
+    if (!strongSelf || !strongFile) {
+      return;
+    }
+    [strongSelf->_pathsNeedingDispatch addObject:strongFile.info.path];
+    dispatch_async(dispatch_get_main_queue(), ^{
+      if ([strongSelf->_pathsNeedingDispatch containsObject:strongFile.info.path]) {
+        [strongSelf->_pathsNeedingDispatch removeObject:strongFile.info.path];
+        [self publishFileChanged:strongFile];
+      }
+    });
+  }];
 }
 
 @end

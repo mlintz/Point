@@ -38,6 +38,11 @@
 
 // Creates file if it doesn't exist
 - (PTAFile *)openFileForPath:(DBPath *)path;
+
+// Asserts if file already exists. Client is responsible for releasing file.
+- (PTAFile *)createFileWithName:(NSString *)name;
+- (BOOL)containsFileWithName:(NSString *)name;
+
 - (void)releaseFileForPath:(DBPath *)path;
 - (void)updateFileForPath:(DBPath *)path;
 

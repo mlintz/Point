@@ -37,6 +37,9 @@
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop
                                                                                           target:self
                                                                                           action:@selector(didSelectClose:)];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCompose
+                                                                                           target:self
+                                                                                           action:@selector(didSelectNew:)];
     self.navigationItem.title = @"Select Recipient";
   }
   return self;
@@ -70,6 +73,43 @@
   [_manager appendString:_appendText toFileAtPath:path];
   [_manager releaseFileForPath:path];
   [self.delegate appendTextControllerDidComplete:self];
+}
+
+- (void)didSelectCreateFileWithName:(NSString *)name {
+  NSString *filename = [NSString stringWithFormat:@"%@.txt", [name lowercaseStringWithLocale:nil]];
+  NSString *message;
+  if ([_manager containsFileWithName:filename]) {
+    message = [NSString stringWithFormat:@"File %@ already exists", filename];
+  } else {
+    PTAFile *file = [_manager createFileWithName:filename];
+    NSString *initialText = [NSString stringWithFormat:@"// %@\n\n%@\n", [name capitalizedStringWithLocale:nil], _appendText];
+    [_manager writeString:initialText toFileAtPath:file.info.path];
+    [_manager releaseFileForPath:file.info.path];
+    message = [NSString stringWithFormat:@"Created %@", filename];
+    [self.delegate appendTextControllerDidComplete:self];
+  }
+  [self.view.window makeToast:message duration:0.5 position:CSToastPositionCenter];
+}
+
+- (void)didSelectNew:(id)sender {
+  UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"New File"
+                                                                           message:nil
+                                                                    preferredStyle:UIAlertControllerStyleAlert];
+  [alertController addTextFieldWithConfigurationHandler:^(UITextField *textField) {
+    textField.placeholder = @"Name";
+  }];
+  
+  UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+  [alertController addAction:cancelAction];
+
+  __weak id weakSelf = self;
+  UIAlertAction *createAction = [UIAlertAction actionWithTitle:@"Create" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+    UITextField *field = [alertController.textFields firstObject];
+    [weakSelf didSelectCreateFileWithName:field.text];
+  }];
+  [alertController addAction:createAction];
+  
+  [self presentViewController:alertController animated:YES completion:nil];
 }
 
 - (void)didSelectClose:(id)sender {
