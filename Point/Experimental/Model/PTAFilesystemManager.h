@@ -37,8 +37,13 @@
 // Returns nil if no file at path.
 - (PTAFile *)openFileForPath:(DBPath *)path;
 - (void)releaseFileForPath:(DBPath *)path;
+- (void)updateFileForPath:(DBPath *)path;
+
+// File must be open and without an available newer version to write or append
 - (void)writeString:(NSString *)string toFileAtPath:(DBPath *)path;
 - (void)appendString:(NSString *)string toFileAtPath:(DBPath *)path;
-- (void)updateFileForPath:(DBPath *)path;
+
+// Inbox file doesn't need to be opened to append
+- (void)appendStringToInboxFile:(NSString *)string;
 
 @end

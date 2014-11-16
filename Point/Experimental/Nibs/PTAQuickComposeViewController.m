@@ -8,6 +8,7 @@
 
 #import "PTAQuickComposeViewController.h"
 #import "PTAComposeBarButtonItem.h"
+#import "PTAQuickComposeView.h"
 
 @implementation PTAQuickComposeViewController {
   PTAFilesystemManager *_filesystemManager;
@@ -23,14 +24,18 @@
   self = [super init];
   if (self) {
     _filesystemManager = filesystemManager;
-    self.navigationItem.title = @"Foo";
+    self.navigationItem.title = @"Quick compose";
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop target:self action:@selector(handleClose:)];
   }
   return self;
 }
 
 - (void)loadView {
-  self.view = [[UIView alloc] init];
-  self.view.backgroundColor = [UIColor cyanColor];
+  self.view = [[PTAQuickComposeView alloc] init];
+}
+
+- (void)handleClose:(id)sender {
+  [self.navigationController dismissViewControllerAnimated:self completion:nil];
 }
 
 @end
