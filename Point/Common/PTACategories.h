@@ -15,6 +15,7 @@ extern CGPoint PTAPointAdd(CGPoint point1, CGPoint point2);
 
 @interface NSString (PTAUtil)
 - (BOOL)containsNonWhitespaceCharacters;
+- (NSString *)pta_stringBySquashingWhitespace:(NSString *)replacementString;
 @end
 
 @interface UIView (PTAUtil)

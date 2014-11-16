@@ -31,6 +31,16 @@ CGPoint PTAPointAdd(CGPoint point1, CGPoint point2) {
   return [[self stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] length];
 }
 
+- (NSString *)pta_stringBySquashingWhitespace:(NSString *)replacementString {
+  NSArray *components =
+      [self componentsSeparatedByCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+  components = [components filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(NSString *component,
+                                                                                             NSDictionary *bindings) {
+    return [component length] > 0;
+  }]];
+  return [components componentsJoinedByString:replacementString];
+}
+
 @end
 
 @implementation UIView (PTAUtil)
