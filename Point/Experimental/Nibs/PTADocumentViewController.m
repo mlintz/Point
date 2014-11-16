@@ -25,6 +25,8 @@
   PTAFile *_file;
   PTAFilesystemManager *_filesystemManager;
   UIAlertController *_alertController;
+  
+  CGRect _keyboardFrame;
 }
 
 - (instancetype)init {
@@ -39,28 +41,58 @@
   if (self) {
     _filesystemManager = manager;
     _path = path;
+    _keyboardFrame = CGRectNull;
 
     self.navigationItem.title = _path.name;
     self.navigationItem.rightBarButtonItem =
         [[PTAComposeBarButtonItem alloc] initWithController:self filesystemManager:_filesystemManager];
+    NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
+    
+    [nc addObserverForName:UIKeyboardWillChangeFrameNotification
+                    object:nil
+                     queue:nil
+                usingBlock:^(NSNotification *note) {
+      NSNumber *keyboardFrameValue = note.userInfo[UIKeyboardFrameEndUserInfoKey];
+      _keyboardFrame = [keyboardFrameValue CGRectValue];
+      NSNumber *durationValue = note.userInfo[UIKeyboardAnimationDurationUserInfoKey];
+      if (self.isViewLoaded) {
+        [self.view setNeedsLayout];
+        [UIView animateWithDuration:(CGFloat)durationValue.doubleValue animations:^{
+          [self.view layoutIfNeeded];
+        }];
+      }
+    }];
   }
   return self;
 }
 
+- (void)dealloc {
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 - (void)loadView {
+  self.view = [[UIView alloc] init];
+
   _textView = [[UITextView alloc] initWithFrame:CGRectZero];
   _textView.delegate = self;
+  [self.view addSubview:_textView];
 
   _spinnerView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
   [_spinnerView hidesWhenStopped];
   [_spinnerView startAnimating];
-  [_textView addSubview:_spinnerView];
-  
-  self.view = _textView;
+  [self.view addSubview:_spinnerView];
 }
 
 - (void)viewWillLayoutSubviews {
   [super viewWillLayoutSubviews];
+  if (CGRectIsEmpty(_keyboardFrame)) {
+    _textView.frame = self.view.bounds;
+  } else {
+    CGRect keyboardFrameInView = [self.view convertRect:_keyboardFrame fromView:self.view.window];
+    CGFloat keyboardTop = CGRectGetMinY(keyboardFrameInView);
+    _textView.frame = CGRectMake(0, 0, CGRectGetWidth(self.view.bounds), keyboardTop);
+  }
+
   [_spinnerView sizeToFit];
   _spinnerView.center = _textView.center;
 }
