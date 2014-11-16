@@ -9,12 +9,12 @@
 #import "PTAQuickComposeViewController.h"
 #import "PTAComposeBarButtonItem.h"
 #import "PTAQuickComposeView.h"
-#import "PTADocumentCollectionViewController.h"
+#import "PTAAppendTextSelectionViewController.h"
 #import "UIView+Toast.h"
 
 static const NSTimeInterval kToastDuration = 0.5;
 
-@interface PTAQuickComposeViewController ()<PTAQuickComposeDelegate, PTADocumentCollectionDelegate>
+@interface PTAQuickComposeViewController ()<PTAQuickComposeDelegate, PTAAppendTextSelectionDelegate>
 @end
 
 @implementation PTAQuickComposeViewController {
@@ -57,36 +57,19 @@ static const NSTimeInterval kToastDuration = 0.5;
   if (!text.length) {
     return;
   }
-  PTADocumentCollectionViewController *documentCollectionVC =
-      [[PTADocumentCollectionViewController alloc] initWithFilesystemManager:_filesystemManager];
-  documentCollectionVC.delegate = self;
-  documentCollectionVC.navigationItem.title = @"Select Recipient";
-  documentCollectionVC.navigationItem.leftBarButtonItem =
-      [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop
-                                                    target:self
-                                                    action:@selector(handleCollectionViewClose:)];
+
+  PTAAppendTextSelectionViewController *appendSelectionController =
+      [[PTAAppendTextSelectionViewController alloc] initWithFilesystemManager:_filesystemManager appendText:text];
+  appendSelectionController.delegate = self;
+
   UINavigationController *navigationController =
-      [[UINavigationController alloc] initWithRootViewController:documentCollectionVC];
+      [[UINavigationController alloc] initWithRootViewController:appendSelectionController];
   [self presentViewController:navigationController animated:YES completion:nil];
 }
 
-- (void)documentCollectionController:(PTADocumentCollectionViewController *)controller
-                       didSelectPath:(DBPath *)path {
-  NSParameterAssert(controller);
-  NSParameterAssert(path);
-
-  NSString *message = [NSString stringWithFormat:@"Added to %@", path.name];
-  [self.navigationController.visibleViewController.view.window makeToast:message
-                                                                duration:kToastDuration position:CSToastPositionCenter];
-
-  [self.navigationController dismissViewControllerAnimated:YES completion:nil];  // Dismiss collection controller
-  if (!_composeView.text.length) {
-    return;
-  }
-  [_filesystemManager openFileForPath:path];
-  [_filesystemManager appendString:_composeView.text toFileAtPath:path];
-  [_filesystemManager releaseFileForPath:path];
-  [self.navigationController dismissViewControllerAnimated:YES completion:nil];  // Dismiss self
+- (void)appendTextControllerDidComplete:(PTAAppendTextSelectionViewController *)controller {
+  [self.navigationController dismissViewControllerAnimated:YES completion:nil];  // Append selection view controller
+  [self.navigationController dismissViewControllerAnimated:YES completion:nil];  // Self
 }
 
 - (void)handleClose:(id)sender {
