@@ -24,7 +24,8 @@
   DBPath *_path;
   PTAFile *_file;
   PTAFilesystemManager *_filesystemManager;
-  UIAlertController *_alertController;
+  UIAlertController *_newVersionAlertController;
+  UIAlertController *_errorAlertController;
   
   CGRect _keyboardFrame;
 }
@@ -46,8 +47,31 @@
     self.navigationItem.title = _path.name;
     self.navigationItem.rightBarButtonItem =
         [[PTAComposeBarButtonItem alloc] initWithController:self filesystemManager:_filesystemManager];
+
+    __weak id weakSelf = self;
+    UIAlertAction *action;
+    action = [UIAlertAction actionWithTitle:@"OK"
+                                      style:UIAlertActionStyleCancel
+                                    handler:^(UIAlertAction *action) {
+      [[weakSelf navigationController] popViewControllerAnimated:YES];
+    }];
+    NSString *message = [NSString stringWithFormat:@"File error: %@", _file.error.localizedDescription];
+    _errorAlertController = [UIAlertController alertControllerWithTitle:@"Error"
+                                                                message:message
+                                                         preferredStyle:UIAlertControllerStyleAlert];
+    [_errorAlertController addAction:action];
+
+    action = [UIAlertAction actionWithTitle:@"Update"
+                                      style:UIAlertActionStyleCancel
+                                    handler:^(UIAlertAction *action) {
+      [manager updateFileForPath:path];
+    }];
+    _newVersionAlertController = [UIAlertController alertControllerWithTitle:@"Alert"
+                                                                     message:@"Newer version of file available"
+                                                              preferredStyle:UIAlertControllerStyleAlert];
+    [_newVersionAlertController addAction:action];
+
     NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
-    
     [nc addObserverForName:UIKeyboardWillChangeFrameNotification
                     object:nil
                      queue:nil
@@ -106,6 +130,11 @@
   [self updateView];
 }
 
+- (void)viewDidAppear:(BOOL)animated {
+  [super viewDidAppear:animated];
+//  [_textView becomeFirstResponder];
+}
+
 - (void)viewDidDisappear:(BOOL)animated {
   [super viewDidDisappear:animated];
   [_filesystemManager removeFileObserver:self forPath:_path];
@@ -133,24 +162,14 @@
 - (void)updateView {
   BOOL isTextViewHidden = YES;
   BOOL isSpinnerHidden = YES;
-  [self dismissAlert];
+  BOOL isNewVersionAlertVisible = NO;
+  BOOL isErrorAlertVisible = NO;
   if (!_file) {
     // Everything is hidden
   } else if (_file.error) {
-    UIAlertAction *action = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
-      [self.navigationController popViewControllerAnimated:YES];
-    }];
-    NSString *message = [NSString stringWithFormat:@"File error: %@", _file.error.localizedDescription];
-    _alertController = [UIAlertController alertControllerWithTitle:@"Error" message:message preferredStyle:UIAlertControllerStyleAlert];
-    [_alertController addAction:action];
+    isErrorAlertVisible = YES;
   } else if (_file.hasNewerVersion) {
-    PTAFilesystemManager *manager = _filesystemManager;
-    DBPath *path = _file.info.path;
-    UIAlertAction *action = [UIAlertAction actionWithTitle:@"Update" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
-      [manager updateFileForPath:path];
-    }];
-    _alertController = [UIAlertController alertControllerWithTitle:@"Alert" message:@"Newer version of file available" preferredStyle:UIAlertControllerStyleAlert];
-    [_alertController addAction:action];
+    isNewVersionAlertVisible = YES;
   } else if (!_file.isOpen || !_file.cached) {
     isSpinnerHidden = NO;
   } else {
@@ -165,14 +184,18 @@
   } else {
     [_spinnerView startAnimating];
   }
-  if (_alertController) {
-    [self presentViewController:_alertController animated:YES completion:nil];
-  }  
-}
 
-- (void)dismissAlert {
-  [_alertController dismissViewControllerAnimated:YES completion:nil];
-  _alertController = nil;
+  if (isNewVersionAlertVisible && !_newVersionAlertController.view.window) {
+    [self presentViewController:_newVersionAlertController animated:YES completion:nil];
+  } else if (!isNewVersionAlertVisible && _newVersionAlertController.view.window) {
+    [self dismissViewControllerAnimated:YES completion:nil];
+  }
+  
+  if (isErrorAlertVisible && !_errorAlertController.view.window) {
+    [self presentViewController:_errorAlertController animated:YES completion:nil];
+  } else if (!isErrorAlertVisible && _errorAlertController.view.window) {
+    [self dismissViewControllerAnimated:YES completion:nil];
+  }
 }
 
 @end
