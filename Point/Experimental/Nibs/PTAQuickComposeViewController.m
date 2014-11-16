@@ -41,6 +41,7 @@
 }
 
 - (void)handleClose:(id)sender {
+  [self.view endEditing:YES];
   [self.navigationController dismissViewControllerAnimated:self completion:nil];
 }
 
