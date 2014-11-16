@@ -21,6 +21,7 @@
   UITextView *_textView;
   UIActivityIndicatorView *_spinnerView;
   BOOL _isCached;
+  DBPath *_path;
   PTAFile *_file;
   PTAFilesystemManager *_filesystemManager;
   UIAlertController *_alertController;
@@ -37,21 +38,13 @@
   self = [super init];
   if (self) {
     _filesystemManager = manager;
-    
-    // XXX(mlintz): open and close file in viewWillAppear/viewDidDisappear
-    [_filesystemManager addFileObserver:self forPath:path];
-    _file = [_filesystemManager openFileForPath:path];
-    NSAssert(!_file.error, @"Error opening file: %@", _file.error);
+    _path = path;
 
-    self.navigationItem.title = path.name;
+    self.navigationItem.title = _path.name;
     self.navigationItem.rightBarButtonItem =
         [[PTAComposeBarButtonItem alloc] initWithController:self filesystemManager:_filesystemManager];
   }
   return self;
-}
-
-- (void)dealloc {
-  [_filesystemManager releaseFileForPath:_file.info.path];
 }
 
 - (void)loadView {
@@ -64,13 +57,29 @@
   [_textView addSubview:_spinnerView];
   
   self.view = _textView;
-  [self updateView];
 }
 
 - (void)viewWillLayoutSubviews {
   [super viewWillLayoutSubviews];
   [_spinnerView sizeToFit];
   _spinnerView.center = _textView.center;
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+  [super viewWillAppear:animated];
+  [_filesystemManager addFileObserver:self forPath:_path];
+  _file = [_filesystemManager openFileForPath:_path];
+  NSAssert(!_file.error, @"Error opening file: %@", _file.error);
+
+  [self updateView];
+}
+
+- (void)viewDidDisappear:(BOOL)animated {
+  [super viewDidDisappear:animated];
+  [_filesystemManager removeFileObserver:self forPath:_path];
+  [_filesystemManager releaseFileForPath:_path];
+  _file = nil;
+  [self updateView];
 }
 
 #pragma mark - UITextViewDelegate
@@ -83,7 +92,6 @@
 
 - (void)fileDidChange:(PTAFile *)file {
   NSAssert(file, @"file must be non-nil.");
-  [self.navigationController popToViewController:self animated:YES];
   _file = file;
   [self updateView];
 }
@@ -94,7 +102,9 @@
   BOOL isTextViewHidden = YES;
   BOOL isSpinnerHidden = YES;
   [self dismissAlert];
-  if (_file.error) {
+  if (!_file) {
+    // Everything is hidden
+  } else if (_file.error) {
     UIAlertAction *action = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
       [self.navigationController popViewControllerAnimated:YES];
     }];

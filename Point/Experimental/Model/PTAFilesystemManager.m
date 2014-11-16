@@ -119,12 +119,13 @@
 }
 
 - (void)removeDirectoryObserver:(id<PTADirectoryObserver>)observer {
-  NSAssert(observer, @"observer must be non-nil");
+  NSParameterAssert(observer);
   [_directoryObservers removeObject:observer];
 }
 
 - (void)addFileObserver:(id<PTAFileObserver>)observer forPath:(DBPath *)path {
-  NSAssert(observer && path, @"observer (%@) and path (%@) must be non-nil", observer, path);
+  NSParameterAssert(observer);
+  NSParameterAssert(path);
   NSHashTable *observers = _fileObservers[path];
   if (!observers) {
     observers = [NSHashTable weakObjectsHashTable];
@@ -134,11 +135,12 @@
 }
 
 - (void)removeFileObserver:(id<PTAFileObserver>)observer forPath:(DBPath *)path {
-  NSAssert(observer && path, @"observer (%@) and path (%@) must be non-nil", observer, path);
+  NSParameterAssert(observer);
+  NSParameterAssert(path);
   NSHashTable *observers = _fileObservers[path];
   [observers removeObject:observer];
   if (!observers.count) {
-    _fileObservers[path] = nil;
+    [_fileObservers removeObjectForKey:path];
   }
 }
 
