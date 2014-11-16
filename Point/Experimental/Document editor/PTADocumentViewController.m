@@ -1,5 +1,3 @@
-// TODO(mlintz):
-
 //
 //  PTADocumentViewController.m
 //  Point
@@ -9,25 +7,20 @@
 //
 
 #import "PTADocumentViewController.h"
-#import "PTAFile.h"
-#import "PTAFileInfo.h"
-#import "PTAFilesystemManager.h"
 #import "PTAComposeBarButtonItem.h"
+#import "PTADocumentView.h"
 
-@interface PTADocumentViewController ()<UITextViewDelegate, PTAFileObserver>
+@interface PTADocumentViewController ()<PTADocumentViewDelegate, PTAFileObserver>
 @end
 
 @implementation PTADocumentViewController {
-  UITextView *_textView;
-  UIActivityIndicatorView *_spinnerView;
-  BOOL _isCached;
+  PTADocumentView *_documentView;
+
   DBPath *_path;
   PTAFile *_file;
   PTAFilesystemManager *_filesystemManager;
   UIAlertController *_newVersionAlertController;
   UIAlertController *_errorAlertController;
-  
-  CGRect _keyboardFrame;
 }
 
 - (instancetype)init {
@@ -42,7 +35,6 @@
   if (self) {
     _filesystemManager = manager;
     _path = path;
-    _keyboardFrame = CGRectNull;
 
     self.navigationItem.title = _path.name;
     self.navigationItem.rightBarButtonItem =
@@ -70,55 +62,16 @@
                                                                      message:@"Newer version of file available"
                                                               preferredStyle:UIAlertControllerStyleAlert];
     [_newVersionAlertController addAction:action];
-
-    NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
-    [nc addObserverForName:UIKeyboardWillChangeFrameNotification
-                    object:nil
-                     queue:nil
-                usingBlock:^(NSNotification *note) {
-      NSNumber *keyboardFrameValue = note.userInfo[UIKeyboardFrameEndUserInfoKey];
-      _keyboardFrame = [keyboardFrameValue CGRectValue];
-      NSNumber *durationValue = note.userInfo[UIKeyboardAnimationDurationUserInfoKey];
-      if (self.isViewLoaded) {
-        [self.view setNeedsLayout];
-        [UIView animateWithDuration:(CGFloat)durationValue.doubleValue animations:^{
-          [self.view layoutIfNeeded];
-        }];
-      }
-    }];
   }
   return self;
 }
 
-- (void)dealloc {
-  [[NSNotificationCenter defaultCenter] removeObserver:self];
-}
-
 - (void)loadView {
-  self.view = [[UIView alloc] init];
-
-  _textView = [[UITextView alloc] initWithFrame:CGRectZero];
-  _textView.delegate = self;
-  [self.view addSubview:_textView];
-
-  _spinnerView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-  [_spinnerView hidesWhenStopped];
-  [_spinnerView startAnimating];
-  [self.view addSubview:_spinnerView];
-}
-
-- (void)viewWillLayoutSubviews {
-  [super viewWillLayoutSubviews];
-  if (CGRectIsEmpty(_keyboardFrame)) {
-    _textView.frame = self.view.bounds;
-  } else {
-    CGRect keyboardFrameInView = [self.view convertRect:_keyboardFrame fromView:self.view.window];
-    CGFloat keyboardTop = CGRectGetMinY(keyboardFrameInView);
-    _textView.frame = CGRectMake(0, 0, CGRectGetWidth(self.view.bounds), keyboardTop);
-  }
-
-  [_spinnerView sizeToFit];
-  _spinnerView.center = _textView.center;
+  _documentView = [[PTADocumentView alloc] init];
+  _documentView.delegate = self;
+  PTADocumentViewModel *viewModel = [[PTADocumentViewModel alloc] initWithLoading:YES text:nil selectedGlyphRange:NSMakeRange(NSNotFound, 0)];
+  [_documentView setViewModel:viewModel];
+  self.view = _documentView;
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -127,7 +80,6 @@
   _file = [_filesystemManager openFileForPath:_path];
   NSAssert(!_file.error, @"Error opening file: %@", _file.error);
   [self updateView];
-//  [_textView becomeFirstResponder];
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
@@ -135,12 +87,6 @@
   [_filesystemManager removeFileObserver:self forPath:_path];
   [_filesystemManager releaseFileForPath:_path];
   _file = nil;
-}
-
-#pragma mark - UITextViewDelegate
-
-- (void)textViewDidChange:(UITextView *)textView {
-  [_filesystemManager writeString:textView.text toFileAtPath:_file.info.path];
 }
 
 #pragma mark - PTAFileObserver
@@ -151,13 +97,32 @@
   [self updateView];
 }
 
+#pragma mark - PTADocumentViewDelegate
+
+- (void)documentView:(PTADocumentView *)documentView didChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
+  [_filesystemManager writeString:documentView.text toFileAtPath:_path];
+}
+
+- (void)documentViewDidTapToCancel:(PTADocumentView *)documentView {
+
+}
+
+- (void)documentViewDidDragToHighlightAllText:(PTADocumentView *)documentView {
+
+}
+
+- (void)documentView:(PTADocumentView *)documentView didDragToHighlightGlyphRange:(NSRange)range {
+
+}
+
 #pragma mark - Private
 
 - (void)updateView {
-  BOOL isTextViewHidden = YES;
-  BOOL isSpinnerHidden = YES;
+  NSString *text;
+  BOOL showLoading = NO;
   BOOL isNewVersionAlertVisible = NO;
   BOOL isErrorAlertVisible = NO;
+
   if (!_file) {
     // Everything is hidden
   } else if (_file.error) {
@@ -165,18 +130,9 @@
   } else if (_file.hasNewerVersion) {
     isNewVersionAlertVisible = YES;
   } else if (!_file.isOpen || !_file.cached) {
-    isSpinnerHidden = NO;
+    showLoading = YES;
   } else {
-    if (![_file.content isEqualToString:_textView.text]) {
-      _textView.text = _file.content;
-    }
-    isTextViewHidden = NO;
-  }
-  _textView.hidden = isTextViewHidden;
-  if (isSpinnerHidden) {
-    [_spinnerView stopAnimating];
-  } else {
-    [_spinnerView startAnimating];
+    text = _file.content;
   }
 
   if (isNewVersionAlertVisible && ![_newVersionAlertController pta_isActive]) {
@@ -190,6 +146,9 @@
   } else if (!isErrorAlertVisible && [_errorAlertController pta_isActive]) {
     [self dismissViewControllerAnimated:YES completion:nil];
   }
+
+  PTADocumentViewModel *vm = [[PTADocumentViewModel alloc] initWithLoading:showLoading text:text selectedGlyphRange:NSMakeRange(NSNotFound, 0)];
+  [_documentView setViewModel:vm];
 }
 
 @end
