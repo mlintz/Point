@@ -13,15 +13,15 @@ static const CGFloat kInputBarWidth = 60;
 @implementation PTADocumentViewModel
 
 - (instancetype)init {
-  return [self initWithLoading:NO text:nil selectedGlyphRange:NSMakeRange(NSNotFound, 0)];
+  return [self initWithLoading:NO text:nil selectedCharacterRange:NSMakeRange(NSNotFound, 0)];
 }
 
-- (instancetype)initWithLoading:(BOOL)loading text:(NSString *)text selectedGlyphRange:(NSRange)range {
+- (instancetype)initWithLoading:(BOOL)loading text:(NSString *)text selectedCharacterRange:(NSRange)range {
   self = [super init];
   if (self) {
     _isLoading = loading;
     _text = [text copy];
-    _selectedGlyphRange = range;
+    _selectedCharacterRange = range;
   }
   return self;
 }
@@ -123,13 +123,13 @@ static const CGFloat kInputBarWidth = 60;
                                         kInputBarWidth,
                                         CGRectGetHeight(_textView.bounds));
 
-  if (_viewModel.selectedGlyphRange.location == NSNotFound) {
+  if (_viewModel.selectedCharacterRange.location == NSNotFound) {
     _selectionRectangle.frame = CGRectMake(0, CGRectGetMidY(_selectionRectangle.frame),
                                            CGRectGetWidth(_textView.bounds), 0);
                                            
   } else {
     CGRect boundingRect = [self fullWidthBoundingRectInTextView:_textView
-                                                   ofGlyphRange:_viewModel.selectedGlyphRange];
+                                               ofCharacterRange:_viewModel.selectedCharacterRange];
     _selectionRectangle.frame = CGRectIntegral(boundingRect);
   }
 }
@@ -155,10 +155,11 @@ static const CGFloat kInputBarWidth = 60;
     [_spinner stopAnimating];
   }
 
-  if (_viewModel.selectedGlyphRange.location != NSNotFound &&
+  if (_viewModel.selectedCharacterRange.location != NSNotFound &&
       CGRectGetHeight(_selectionRectangle.bounds) == 0) {
     // Position selection indicator for expand animation.
-    CGRect boundingRect = [self fullWidthBoundingRectInTextView:_textView ofGlyphRange:_viewModel.selectedGlyphRange];
+    CGRect boundingRect = [self fullWidthBoundingRectInTextView:_textView
+                                               ofCharacterRange:_viewModel.selectedCharacterRange];
     CGFloat midY = CGRectGetMidY(boundingRect);
     _selectionRectangle.frame = CGRectMake(CGRectGetMinX(boundingRect), midY, CGRectGetWidth(boundingRect), 0);
   }
@@ -183,9 +184,9 @@ static const CGFloat kInputBarWidth = 60;
     [self.delegate documentViewDidDragToHighlightAllText:self];
     return;
   }
-  NSRange glyphRange = [self glyphRangeOfTextView:_textView
-                              lineContainingPoint:[panRecognizer locationInView:_textView]];
-  [self.delegate documentView:self didDragToHighlightGlyphRange:glyphRange];
+  NSRange selectedCharacterRange = [self characterRangeOfTextView:_textView
+                                              lineContainingPoint:[panRecognizer locationInView:_textView]];
+  [self.delegate documentView:self didDragToHighlightCharacterRange:selectedCharacterRange];
 }
 
 - (void)handleSelectionBarTap:(UITapGestureRecognizer *)tapRecognizer {
@@ -195,15 +196,20 @@ static const CGFloat kInputBarWidth = 60;
   }
 }
 
-- (NSRange)glyphRangeOfTextView:(UITextView *)textView lineContainingPoint:(CGPoint)pointInTextView {
+- (NSRange)characterRangeOfTextView:(UITextView *)textView lineContainingPoint:(CGPoint)pointInTextView {
   NSParameterAssert(textView);
   CGRect boundingRect = CGRectMake(0, pointInTextView.y, CGRectGetWidth(textView.bounds), 1);
-  return [textView.layoutManager glyphRangeForBoundingRect:boundingRect
-                                           inTextContainer:textView.textContainer];
+  NSRange glyphRange = [textView.layoutManager glyphRangeForBoundingRect:boundingRect
+                                                         inTextContainer:textView.textContainer];
+  return [textView.layoutManager characterRangeForGlyphRange:glyphRange actualGlyphRange:NULL];
 }
 
-- (CGRect)fullWidthBoundingRectInTextView:(UITextView *)textView ofGlyphRange:(NSRange)glyphRange {
+- (CGRect)fullWidthBoundingRectInTextView:(UITextView *)textView
+                         ofCharacterRange:(NSRange)characterRange {
   NSParameterAssert(textView);
+  NSParameterAssert(characterRange.location != NSNotFound);
+  NSRange glyphRange = [textView.layoutManager glyphRangeForCharacterRange:characterRange
+                                                      actualCharacterRange:NULL];
   CGRect boundingRectInContainer = [textView.layoutManager boundingRectForGlyphRange:glyphRange
                                                                      inTextContainer:textView.textContainer];
   return CGRectMake(0, CGRectGetMinY(boundingRectInContainer) + textView.textContainerInset.top,

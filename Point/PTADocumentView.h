@@ -11,7 +11,7 @@
 @protocol PTADocumentViewDelegate <NSObject>
 
 - (void)documentView:(PTADocumentView *)documentView didChangeTextInRange:(NSRange)range replacementText:(NSString *)text;
-- (void)documentView:(PTADocumentView *)documentView didDragToHighlightGlyphRange:(NSRange)range;
+- (void)documentView:(PTADocumentView *)documentView didDragToHighlightCharacterRange:(NSRange)range;
 - (void)documentViewDidDragToHighlightAllText:(PTADocumentView *)documentView;
 - (void)documentViewDidTapToCancelSelection:(PTADocumentView *)documentView;
 
@@ -22,9 +22,9 @@
 
 @property(nonatomic, readonly) BOOL isLoading;
 @property(nonatomic, readonly) NSString *text;
-@property(nonatomic, readonly) NSRange selectedGlyphRange;  // Location set to NSNotFound to indicate no selection
+@property(nonatomic, readonly) NSRange selectedCharacterRange;  // Location set to NSNotFound to indicate no selection
 
-- (instancetype)initWithLoading:(BOOL)loading text:(NSString *)text selectedGlyphRange:(NSRange)range;
+- (instancetype)initWithLoading:(BOOL)loading text:(NSString *)text selectedCharacterRange:(NSRange)range;
 
 @end
 

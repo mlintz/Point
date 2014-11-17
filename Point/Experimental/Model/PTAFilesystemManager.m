@@ -203,19 +203,21 @@
   }
 }
 
-- (void)writeString:(NSString *)string toFileAtPath:(DBPath *)path {
-  [self performFileOperation:^BOOL(DBFile *file, DBError *__autoreleasing *error) {
+- (PTAFile *)writeString:(NSString *)string toFileAtPath:(DBPath *)path {
+  DBFile *file = [self performFileOperation:^BOOL(DBFile *file, DBError *__autoreleasing *error) {
     NSAssert(!file.newerStatus, @"Attempting to write string to file when newer version is available.");
     return [file writeString:string error:error];
   } forPath:path];
+  return [self createFile:file];
 }
 
-- (void)appendString:(NSString *)string toFileAtPath:(DBPath *)path {
+- (PTAFile *)appendString:(NSString *)string toFileAtPath:(DBPath *)path {
   string = [NSString stringWithFormat:@"\n%@", string];
-  [self performFileOperation:^BOOL(DBFile *file, DBError *__autoreleasing *error) {
+  DBFile *file = [self performFileOperation:^BOOL(DBFile *file, DBError *__autoreleasing *error) {
     NSAssert(!file.newerStatus, @"Attempting to append string to file when newer version is available.");
     return [file appendString:string error:error];
   } forPath:path];
+  return [self createFile:file];
 }
 
 - (void)updateFileForPath:(DBPath *)path {
@@ -226,7 +228,7 @@
 
 #pragma mark - Private
 
-- (void)performFileOperation:(BOOL (^)(DBFile *file, DBError **error))operation
+- (DBFile *)performFileOperation:(BOOL (^)(DBFile *file, DBError **error))operation
                      forPath:(DBPath *)path {
   NSParameterAssert(path);
   DBFile *file = [_filesMap[path] file];
@@ -243,6 +245,7 @@
       [self publishFileChanged:file];
     }
   });
+  return file;
 }
 
 - (PTADirectory *)createDirectory {

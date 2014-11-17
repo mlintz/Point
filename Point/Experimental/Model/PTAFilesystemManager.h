@@ -47,8 +47,8 @@
 - (void)updateFileForPath:(DBPath *)path;
 
 // File must be open and without an available newer version to write or append
-- (void)writeString:(NSString *)string toFileAtPath:(DBPath *)path;
-- (void)appendString:(NSString *)string toFileAtPath:(DBPath *)path;
+- (PTAFile *)writeString:(NSString *)string toFileAtPath:(DBPath *)path;
+- (PTAFile *)appendString:(NSString *)string toFileAtPath:(DBPath *)path;
 
 // Inbox file doesn't need to be opened to append
 - (void)appendTextToInboxFile:(NSString *)string;

@@ -21,7 +21,7 @@
   PTAFilesystemManager *_filesystemManager;
   UIAlertController *_newVersionAlertController;
   UIAlertController *_errorAlertController;
-  NSRange _selectedGlyphRange;
+  NSRange _selectedCharacterRange;
 }
 
 - (instancetype)init {
@@ -34,7 +34,7 @@
   NSParameterAssert(path);
   self = [super init];
   if (self) {
-    _selectedGlyphRange = NSMakeRange(NSNotFound, 0);
+    _selectedCharacterRange = NSMakeRange(NSNotFound, 0);
     _filesystemManager = manager;
     _path = path;
 
@@ -72,7 +72,7 @@
   _documentView = [[PTADocumentView alloc] init];
   _documentView.delegate = self;
   PTADocumentViewModel *viewModel =
-      [[PTADocumentViewModel alloc] initWithLoading:YES text:nil selectedGlyphRange:NSMakeRange(NSNotFound, 0)];
+      [[PTADocumentViewModel alloc] initWithLoading:YES text:nil selectedCharacterRange:NSMakeRange(NSNotFound, 0)];
   [_documentView setViewModel:viewModel];
   self.view = _documentView;
 }
@@ -103,21 +103,28 @@
 #pragma mark - PTADocumentViewDelegate
 
 - (void)documentView:(PTADocumentView *)documentView didChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
-  [_filesystemManager writeString:documentView.text toFileAtPath:_path];
+  _file = [_filesystemManager writeString:documentView.text toFileAtPath:_path];
+  NSAssert(!_file.error, @"Error writing to file: %@", _file.error);
+  _selectedCharacterRange = NSMakeRange(NSNotFound, 0);
+  [self updateView];
 }
 
 - (void)documentViewDidTapToCancelSelection:(PTADocumentView *)documentView {
-  _selectedGlyphRange = NSMakeRange(NSNotFound, 0);
+  _selectedCharacterRange = NSMakeRange(NSNotFound, 0);
   [self updateView];
 }
 
 - (void)documentViewDidDragToHighlightAllText:(PTADocumentView *)documentView {
-  _selectedGlyphRange = NSMakeRange(0, _documentView.text.length);
+  _selectedCharacterRange = NSMakeRange(0, _documentView.text.length);
   [self updateView];
 }
 
-- (void)documentView:(PTADocumentView *)documentView didDragToHighlightGlyphRange:(NSRange)range {
 
+- (void)documentView:(PTADocumentView *)documentView didDragToHighlightCharacterRange:(NSRange)range {
+  _selectedCharacterRange = range;
+  _selectedCharacterRange = [self newlineBoundedRangeContainingRange:_selectedCharacterRange inString:documentView.text];
+  // XXX(mlintz): include old character range if contigous
+  [self updateView];
 }
 
 #pragma mark - Private
@@ -152,8 +159,27 @@
     [self dismissViewControllerAnimated:YES completion:nil];
   }
 
-  PTADocumentViewModel *vm = [[PTADocumentViewModel alloc] initWithLoading:showLoading text:text selectedGlyphRange:_selectedGlyphRange];
+  PTADocumentViewModel *vm = [[PTADocumentViewModel alloc] initWithLoading:showLoading
+                                                                      text:text
+                                                    selectedCharacterRange:_selectedCharacterRange];
   [_documentView setViewModel:vm];
+}
+
+- (NSRange)newlineBoundedRangeContainingRange:(NSRange)range inString:(NSString *)string {
+  if (range.location == NSNotFound) {
+    return range;
+  }
+
+  NSCharacterSet *newlineCharacters = [NSCharacterSet newlineCharacterSet];
+  NSRange preRange = NSMakeRange(0, range.location);
+  NSRange prependingNewline = [string rangeOfCharacterFromSet:newlineCharacters options:NSBackwardsSearch range:preRange];
+  NSUInteger newLocation = prependingNewline.location == NSNotFound ? 0 : NSMaxRange(prependingNewline);
+
+  NSRange postRange = NSMakeRange(range.location, string.length - range.location);
+  NSRange postpendingNewline = [string rangeOfCharacterFromSet:newlineCharacters options:0 range:postRange];
+  NSUInteger newRange = postpendingNewline.location - newLocation;
+  
+  return NSMakeRange(newLocation, newRange);
 }
 
 @end
