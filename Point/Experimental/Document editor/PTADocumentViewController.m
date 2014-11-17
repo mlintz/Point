@@ -21,6 +21,7 @@
   PTAFilesystemManager *_filesystemManager;
   UIAlertController *_newVersionAlertController;
   UIAlertController *_errorAlertController;
+  NSRange _selectedGlyphRange;
 }
 
 - (instancetype)init {
@@ -33,6 +34,7 @@
   NSParameterAssert(path);
   self = [super init];
   if (self) {
+    _selectedGlyphRange = NSMakeRange(NSNotFound, 0);
     _filesystemManager = manager;
     _path = path;
 
@@ -69,7 +71,8 @@
 - (void)loadView {
   _documentView = [[PTADocumentView alloc] init];
   _documentView.delegate = self;
-  PTADocumentViewModel *viewModel = [[PTADocumentViewModel alloc] initWithLoading:YES text:nil selectedGlyphRange:NSMakeRange(NSNotFound, 0)];
+  PTADocumentViewModel *viewModel =
+      [[PTADocumentViewModel alloc] initWithLoading:YES text:nil selectedGlyphRange:NSMakeRange(NSNotFound, 0)];
   [_documentView setViewModel:viewModel];
   self.view = _documentView;
 }
@@ -103,12 +106,14 @@
   [_filesystemManager writeString:documentView.text toFileAtPath:_path];
 }
 
-- (void)documentViewDidTapToCancel:(PTADocumentView *)documentView {
-
+- (void)documentViewDidTapToCancelSelection:(PTADocumentView *)documentView {
+  _selectedGlyphRange = NSMakeRange(NSNotFound, 0);
+  [self updateView];
 }
 
 - (void)documentViewDidDragToHighlightAllText:(PTADocumentView *)documentView {
-
+  _selectedGlyphRange = NSMakeRange(0, _documentView.text.length);
+  [self updateView];
 }
 
 - (void)documentView:(PTADocumentView *)documentView didDragToHighlightGlyphRange:(NSRange)range {
@@ -147,7 +152,7 @@
     [self dismissViewControllerAnimated:YES completion:nil];
   }
 
-  PTADocumentViewModel *vm = [[PTADocumentViewModel alloc] initWithLoading:showLoading text:text selectedGlyphRange:NSMakeRange(NSNotFound, 0)];
+  PTADocumentViewModel *vm = [[PTADocumentViewModel alloc] initWithLoading:showLoading text:text selectedGlyphRange:_selectedGlyphRange];
   [_documentView setViewModel:vm];
 }
 

@@ -13,7 +13,7 @@
 - (void)documentView:(PTADocumentView *)documentView didChangeTextInRange:(NSRange)range replacementText:(NSString *)text;
 - (void)documentView:(PTADocumentView *)documentView didDragToHighlightGlyphRange:(NSRange)range;
 - (void)documentViewDidDragToHighlightAllText:(PTADocumentView *)documentView;
-- (void)documentViewDidTapToCancel:(PTADocumentView *)documentView;
+- (void)documentViewDidTapToCancelSelection:(PTADocumentView *)documentView;
 
 @end
 
