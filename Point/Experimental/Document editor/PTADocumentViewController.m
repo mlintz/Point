@@ -121,10 +121,17 @@
 
 
 - (void)documentView:(PTADocumentView *)documentView didDragToHighlightCharacterRange:(NSRange)range {
+  if (range.length == 0) {
+    return;
+  }
   // XXX(mlintz): reject highlighted range if just newline
+  NSRange oldCharacterRange = _selectedCharacterRange;
   _selectedCharacterRange = range;
-  _selectedCharacterRange = [self newlineBoundedRangeContainingRange:_selectedCharacterRange inString:documentView.text];
-  // XXX(mlintz): include old character range if contigous
+  _selectedCharacterRange = [[self class] newlineBoundedRangeContainingRange:_selectedCharacterRange
+                                                                    inString:documentView.text];
+  if (oldCharacterRange.length > 0) {
+    _selectedCharacterRange = NSUnionRange(oldCharacterRange, _selectedCharacterRange);
+  }
   [self updateView];
 }
 
@@ -166,8 +173,8 @@
   [_documentView setViewModel:vm];
 }
 
-- (NSRange)newlineBoundedRangeContainingRange:(NSRange)range inString:(NSString *)string {
-  if (range.location == NSNotFound) {
++ (NSRange)newlineBoundedRangeContainingRange:(NSRange)range inString:(NSString *)string {
+  if (range.location == NSNotFound || range.length == 0) {
     return range;
   }
 

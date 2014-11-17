@@ -163,7 +163,7 @@ static const CGFloat kInputBarWidth = 60;
     CGFloat midY = CGRectGetMidY(boundingRect);
     _selectionRectangle.frame = CGRectMake(CGRectGetMinX(boundingRect), midY, CGRectGetWidth(boundingRect), 0);
   }
-  [UIView animateWithDuration:0.2f animations:^{
+  [UIView animateWithDuration:0.15f animations:^{
     [self setNeedsLayout];
     [self layoutIfNeeded];
   }];
