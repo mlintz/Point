@@ -121,6 +121,7 @@
 
 
 - (void)documentView:(PTADocumentView *)documentView didDragToHighlightCharacterRange:(NSRange)range {
+  // XXX(mlintz): reject highlighted range if just newline
   _selectedCharacterRange = range;
   _selectedCharacterRange = [self newlineBoundedRangeContainingRange:_selectedCharacterRange inString:documentView.text];
   // XXX(mlintz): include old character range if contigous
@@ -177,9 +178,11 @@
 
   NSRange postRange = NSMakeRange(range.location, string.length - range.location);
   NSRange postpendingNewline = [string rangeOfCharacterFromSet:newlineCharacters options:0 range:postRange];
-  NSUInteger newRange = postpendingNewline.location - newLocation;
+  NSUInteger newLength = postpendingNewline.location == NSNotFound
+      ? string.length - newLocation
+      : postpendingNewline.location - newLocation;
   
-  return NSMakeRange(newLocation, newRange);
+  return NSMakeRange(newLocation, newLength);
 }
 
 @end
