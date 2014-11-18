@@ -110,8 +110,8 @@
 
 #pragma mark - PTADocumentViewDelegate
 
-- (void)documentView:(PTADocumentView *)documentView didChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
-  _file = [_filesystemManager writeString:documentView.text toFileAtPath:_path];
+- (void)documentView:(PTADocumentView *)documentView didChangeText:(NSString *)text {
+  _file = [_filesystemManager writeString:text toFileAtPath:_path];
   NSAssert(!_file.error, @"Error writing to file: %@", _file.error);
   _selectedCharacterRange = NSMakeRange(NSNotFound, 0);
   [self updateView];

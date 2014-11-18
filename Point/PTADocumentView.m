@@ -37,16 +37,13 @@ static const CGFloat kInputBarWidth = 60;
   UIView *_selectionInputBar;
   UIView *_selectionRectangle;
   
-  NSMutableString *_text;
   CGRect _keyboardFrame;
-
   PTADocumentViewModel *_viewModel;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame {
   self = [super initWithFrame:frame];
   if (self) {
-    _text = [NSMutableString string];
     _keyboardFrame = CGRectNull;
 
     _textView = [[UITextView alloc] init];
@@ -102,7 +99,7 @@ static const CGFloat kInputBarWidth = 60;
 }
 
 - (NSString *)text {
-  return _text;
+  return _textView.text;
 }
 
 - (void)layoutSubviews {
@@ -134,19 +131,14 @@ static const CGFloat kInputBarWidth = 60;
   }
 }
 
-- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
-  [_text replaceCharactersInRange:range withString:text];
-  [self.delegate documentView:self didChangeTextInRange:range replacementText:text];
-
-  return YES;
+- (void)textViewDidChange:(UITextView *)textView {
+  [self.delegate documentView:self didChangeText:self.text];
 }
 
 - (void)setViewModel:(PTADocumentViewModel *)viewModel {
   _viewModel = viewModel;
-  if (![_viewModel.text isEqualToString:_text]) {
-    NSString *newText = _viewModel.text ? _viewModel.text : @"";
-    [_text replaceCharactersInRange:NSMakeRange(0, _text.length) withString:newText];
-    _textView.text = _text;
+  if (![_viewModel.text isEqualToString:self.text]) {
+    _textView.text = _viewModel.text;
   }
 
   if (_viewModel.isLoading) {
