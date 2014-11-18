@@ -14,7 +14,6 @@
 		C8A098CE1A104B790075560F /* PTAFileInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = C8A098CD1A104B790075560F /* PTAFileInfo.m */; };
 		C8A098D11A1054C60075560F /* PTAFilesystemManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C8A098D01A1054C60075560F /* PTAFilesystemManager.m */; };
 		C8A098D41A106C5E0075560F /* PTADirectory.m in Sources */ = {isa = PBXBuildFile; fileRef = C8A098D31A106C5E0075560F /* PTADirectory.m */; };
-		C8C0CD53196A26B6001EF37F /* PTACategories.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C0CD52196A26B6001EF37F /* PTACategories.m */; };
 		C8C0CD5A196A26C4001EF37F /* PTAParser.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C0CD55196A26C4001EF37F /* PTAParser.m */; };
 		C8C0CD5B196A26C4001EF37F /* PTATextEditorView.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C0CD57196A26C4001EF37F /* PTATextEditorView.m */; };
 		C8C0CD5C196A26C4001EF37F /* PTATextEditorViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C8C0CD59196A26C4001EF37F /* PTATextEditorViewController.m */; };
@@ -38,6 +37,7 @@
 		C8EB1E1F1A1928B40057C7F6 /* PTAMainCollectionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C8EB1E1E1A1928B40057C7F6 /* PTAMainCollectionViewController.m */; };
 		C8EB1E231A192A080057C7F6 /* PTADocumentViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C8EB1E221A192A080057C7F6 /* PTADocumentViewController.m */; };
 		C8EB1E261A1934680057C7F6 /* PTADocumentView.m in Sources */ = {isa = PBXBuildFile; fileRef = C8EB1E251A1934680057C7F6 /* PTADocumentView.m */; };
+		C8EB1E291A1AF17D0057C7F6 /* PTAUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = C8EB1E281A1AF17D0057C7F6 /* PTAUtil.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -65,8 +65,6 @@
 		C8A098D01A1054C60075560F /* PTAFilesystemManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTAFilesystemManager.m; path = Experimental/Model/PTAFilesystemManager.m; sourceTree = "<group>"; };
 		C8A098D21A106C5E0075560F /* PTADirectory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTADirectory.h; path = Experimental/Model/PTADirectory.h; sourceTree = "<group>"; };
 		C8A098D31A106C5E0075560F /* PTADirectory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTADirectory.m; path = Experimental/Model/PTADirectory.m; sourceTree = "<group>"; };
-		C8C0CD51196A26B6001EF37F /* PTACategories.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTACategories.h; path = Common/PTACategories.h; sourceTree = "<group>"; };
-		C8C0CD52196A26B6001EF37F /* PTACategories.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTACategories.m; path = Common/PTACategories.m; sourceTree = "<group>"; };
 		C8C0CD54196A26C4001EF37F /* PTAParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTAParser.h; path = Experimental/TextView/PTAParser.h; sourceTree = "<group>"; };
 		C8C0CD55196A26C4001EF37F /* PTAParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTAParser.m; path = Experimental/TextView/PTAParser.m; sourceTree = "<group>"; };
 		C8C0CD56196A26C4001EF37F /* PTATextEditorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTATextEditorView.h; path = Experimental/TextView/PTATextEditorView.h; sourceTree = "<group>"; };
@@ -105,6 +103,8 @@
 		C8EB1E221A192A080057C7F6 /* PTADocumentViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTADocumentViewController.m; path = "Experimental/Document editor/PTADocumentViewController.m"; sourceTree = "<group>"; };
 		C8EB1E241A1934680057C7F6 /* PTADocumentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PTADocumentView.h; sourceTree = "<group>"; };
 		C8EB1E251A1934680057C7F6 /* PTADocumentView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PTADocumentView.m; sourceTree = "<group>"; };
+		C8EB1E271A1AF17D0057C7F6 /* PTAUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTAUtil.h; path = Common/PTAUtil.h; sourceTree = "<group>"; };
+		C8EB1E281A1AF17D0057C7F6 /* PTAUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTAUtil.m; path = Common/PTAUtil.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -270,10 +270,10 @@
 		C8C42F8A196755F00041645E /* Common */ = {
 			isa = PBXGroup;
 			children = (
-				C8C0CD51196A26B6001EF37F /* PTACategories.h */,
-				C8C0CD52196A26B6001EF37F /* PTACategories.m */,
 				C8EB1E0B1A19284B0057C7F6 /* PTADocumentCollectionViewController.h */,
 				C8EB1E0C1A19284B0057C7F6 /* PTADocumentCollectionViewController.m */,
+				C8EB1E271A1AF17D0057C7F6 /* PTAUtil.h */,
+				C8EB1E281A1AF17D0057C7F6 /* PTAUtil.m */,
 			);
 			name = Common;
 			sourceTree = "<group>";
@@ -436,6 +436,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C8EB1E291A1AF17D0057C7F6 /* PTAUtil.m in Sources */,
 				C8C0CD5B196A26C4001EF37F /* PTATextEditorView.m in Sources */,
 				C8EB1E261A1934680057C7F6 /* PTADocumentView.m in Sources */,
 				C8EB1E0F1A19284B0057C7F6 /* PTADocumentCollectionViewController.m in Sources */,
@@ -450,7 +451,6 @@
 				C8C0CD5C196A26C4001EF37F /* PTATextEditorViewController.m in Sources */,
 				C8EB1E1F1A1928B40057C7F6 /* PTAMainCollectionViewController.m in Sources */,
 				C8A098D11A1054C60075560F /* PTAFilesystemManager.m in Sources */,
-				C8C0CD53196A26B6001EF37F /* PTACategories.m in Sources */,
 				C8C42F67196745A80041645E /* PTAAppDelegate.m in Sources */,
 				C8C42F63196745A80041645E /* main.m in Sources */,
 				C8EB1E1A1A1928850057C7F6 /* PTAComposeBarButtonItem.m in Sources */,

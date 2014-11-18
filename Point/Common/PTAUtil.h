@@ -1,5 +1,5 @@
 //
-//  PTACategories.h
+//  PTAUtil.h
 //  Point
 //
 //  Created by Mikey Lintz on 7/5/14.
