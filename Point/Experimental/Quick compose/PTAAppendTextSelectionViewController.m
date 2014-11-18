@@ -11,9 +11,6 @@
 #import "PTADocumentCollectionViewController.h"
 #import "UIView+Toast.h"
 
-@interface PTAAppendTextSelectionViewController ()<PTADocumentCollectionDelegate>
-@end
-
 @implementation PTAAppendTextSelectionViewController {
   PTAFilesystemManager *_manager;
   NSString *_appendText;
@@ -47,8 +44,13 @@
 }
 
 - (void)loadView {
-  _collectionVC = [[PTADocumentCollectionViewController alloc] initWithFilesystemManager:_manager];
-  _collectionVC.delegate = self;
+  __weak id weakSelf = self;
+  PTADocumentCollectionSelection callback = ^(PTADocumentCollectionViewController *collectionController,
+                                              DBPath *path) {
+    [weakSelf documentCollectionControllerDidSelectPath:path];
+  };
+  _collectionVC = [[PTADocumentCollectionViewController alloc] initWithFilesystemManager:_manager
+                                                                                callback:callback];
   [self addChildViewController:_collectionVC];
   self.view = [[UIView alloc] init];
   [self.view addSubview:_collectionVC.view];
@@ -60,9 +62,7 @@
   _collectionVC.view.frame = self.view.bounds;
 }
 
-- (void)documentCollectionController:(PTADocumentCollectionViewController *)controller
-                       didSelectPath:(DBPath *)path {
-  NSParameterAssert(controller);
+- (void)documentCollectionControllerDidSelectPath:(DBPath *)path {
   NSParameterAssert(path);
 
   NSString *message = [NSString stringWithFormat:@"Added to %@", path.name];

@@ -9,18 +9,11 @@
 @class PTAFilesystemManager;
 @class PTADocumentCollectionViewController;
 
-// XXX(mlintz): this could probably just be a block argument.
-@protocol PTADocumentCollectionDelegate <NSObject>
-
-- (void)documentCollectionController:(PTADocumentCollectionViewController *)controller
-                       didSelectPath:(DBPath *)path;
-
-@end
+typedef void (^PTADocumentCollectionSelection)(PTADocumentCollectionViewController *collectionController, DBPath *path);
 
 @interface PTADocumentCollectionViewController : UIViewController
 
-@property(nonatomic, weak) id<PTADocumentCollectionDelegate> delegate;
-
-- (instancetype)initWithFilesystemManager:(PTAFilesystemManager *)filesystemManager;
+- (instancetype)initWithFilesystemManager:(PTAFilesystemManager *)filesystemManager
+                                 callback:(PTADocumentCollectionSelection)callback;
 
 @end

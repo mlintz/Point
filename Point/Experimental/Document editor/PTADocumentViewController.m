@@ -12,7 +12,7 @@
 #import "PTADocumentCollectionViewController.h"
 #import "UIView+Toast.h"
 
-@interface PTADocumentViewController ()<PTADocumentViewDelegate, PTAFileObserver, PTADocumentCollectionDelegate>
+@interface PTADocumentViewController ()<PTADocumentViewDelegate, PTAFileObserver>
 @end
 
 @implementation PTADocumentViewController {
@@ -127,7 +127,6 @@
   [self updateView];
 }
 
-
 - (void)documentView:(PTADocumentView *)documentView didDragToHighlightCharacterRange:(NSRange)range {
   if (range.length == 0) {
     return;
@@ -143,9 +142,7 @@
   [self updateView];
 }
 
-#pragma mark - PTADocumentCollectionDelegate
-
-- (void)documentCollectionController:(PTADocumentCollectionViewController *)controller didSelectPath:(DBPath *)path {
+- (void)documentCollectionDidSelectPath:(DBPath *)path {
   NSParameterAssert(path);
   
   [self dismissViewControllerAnimated:YES completion:nil];
@@ -180,9 +177,14 @@
 #pragma mark - Private
 
 - (void)handleAddToFileTapped:(id)sender {
+  __weak id weakSelf = self;
+  PTADocumentCollectionSelection callback = ^(PTADocumentCollectionViewController *collectionController,
+                                              DBPath *path) {
+    [weakSelf documentCollectionDidSelectPath:path];
+  };
   PTADocumentCollectionViewController *collectionController =
-      [[PTADocumentCollectionViewController alloc] initWithFilesystemManager:_filesystemManager];
-  collectionController.delegate = self;
+      [[PTADocumentCollectionViewController alloc] initWithFilesystemManager:_filesystemManager
+                                                                    callback:callback];
   collectionController.navigationItem.leftBarButtonItem =
       [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop
                                                     target:self

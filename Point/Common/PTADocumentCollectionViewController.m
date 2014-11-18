@@ -53,6 +53,7 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 
   PTAFilesystemManager *_filesystemManager;
   PTADirectory *_directory;
+  PTADocumentCollectionSelection _selectionCallback;
 }
 
 - (instancetype)init {
@@ -60,7 +61,8 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
   return nil;
 }
 
-- (instancetype)initWithFilesystemManager:(PTAFilesystemManager *)filesystemManager {
+- (instancetype)initWithFilesystemManager:(PTAFilesystemManager *)filesystemManager
+                                 callback:(PTADocumentCollectionSelection)callback {
   NSParameterAssert(filesystemManager);
   self = [super init];
   if (self) {
@@ -72,6 +74,8 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
   
     [filesystemManager addDirectoryObserver:self];
     _directory = _filesystemManager.directory;
+
+    _selectionCallback = [callback copy];
   }
   return self;
 }
@@ -149,21 +153,10 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 #pragma mark - UITableViewDelegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-
   PTAFileInfo *fileInfo = _directory.fileInfos[indexPath.row];
-  [self.delegate documentCollectionController:self didSelectPath:fileInfo.path];
-//  PTADocumentViewController *vc = [[PTADocumentViewController alloc] initWithManager:_filesystemManager path:fileInfo.path];
-//  [self.navigationController pushViewController:vc animated:YES];
-
-//  DBFileInfo *fileInfo = _fileInfos[indexPath.row];
-//  NSError *error;
-//  DBFile *file = [DBFilesystem.sharedFilesystem openFile:fileInfo.path error:&error];
-//  NSAssert(!error, error.localizedDescription);
-//
-//  PTADocumentViewController *vc = [[PTADocumentViewController alloc] init];
-//  vc.file = file;
-//
-//  [self.navigationController pushViewController:vc animated:YES];
+  if (_selectionCallback) {
+    _selectionCallback(self, fileInfo.path);
+  }
 }
 
 #pragma mark - PTADirectoryObserver
@@ -183,18 +176,5 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
     [_spinnerView startAnimating];
   }
 }
-
-//- (void)updateView {
-//  NSError *error;
-//  if (!DBFilesystem.sharedFilesystem.completedFirstSync) {
-//    _spinnerView.hidden = NO;
-//    _fileInfos = nil;
-//  } else {
-//    _spinnerView.hidden = YES;
-//    _fileInfos = [[DBFilesystem.sharedFilesystem listFolder:[DBPath root] error:&error] pta_filteredArrayWithPathExtension:@"txt"];
-//    NSAssert(!error, error.localizedDescription);
-//  }
-//  [_tableView reloadData];
-//}
 
 @end
