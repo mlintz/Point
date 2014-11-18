@@ -212,14 +212,6 @@
   BOOL isNewVersionAlertVisible = NO;
   BOOL isErrorAlertVisible = NO;
 
-  BOOL animateRightBarButtom = (self.navigationItem.rightBarButtonItem != nil);
-  BOOL hasSelection = !PTARangeEmptyOrNotFound(_selectedCharacterRange);
-  if (hasSelection && self.navigationItem.rightBarButtonItem != _sendToBarButton) {
-    [self.navigationItem setRightBarButtonItem:_sendToBarButton animated:animateRightBarButtom];
-  } else if (!hasSelection && self.navigationItem.rightBarButtonItem != _composeBarButton) {
-    [self.navigationItem setRightBarButtonItem:_composeBarButton animated:animateRightBarButtom];
-  }
-
   if (!_file) {
     // Everything is hidden
   } else if (_file.error) {
@@ -231,6 +223,15 @@
   } else {
     text = _file.content;
   }
+
+  BOOL animateRightBarButtom = (self.navigationItem.rightBarButtonItem != nil);
+  BOOL hasSelection = !PTARangeEmptyOrNotFound(_selectedCharacterRange);
+  if (hasSelection && self.navigationItem.rightBarButtonItem != _sendToBarButton) {
+    [self.navigationItem setRightBarButtonItem:_sendToBarButton animated:animateRightBarButtom];
+  } else if (!hasSelection && self.navigationItem.rightBarButtonItem != _composeBarButton) {
+    [self.navigationItem setRightBarButtonItem:_composeBarButton animated:animateRightBarButtom];
+  }
+  self.navigationItem.title = _file ? _file.nameWithEmojiStatus : _path.name;
 
   if (isNewVersionAlertVisible && ![_newVersionAlertController pta_isActive]) {
     [self presentViewController:_newVersionAlertController animated:YES completion:nil];
