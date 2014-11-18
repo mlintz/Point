@@ -8,12 +8,18 @@
 
 #import "PTACategories.h"
 
+const NSRange PTANullRange = { .length = 0, .location = NSNotFound };
+
 CGPoint PTAPointInvert(CGPoint point) {
   return CGPointMake(-1 * point.x, -1 * point.y);
 }
 
 CGPoint PTAPointAdd(CGPoint point1, CGPoint point2) {
   return CGPointMake(point1.x + point2.x, point1.y + point2.y);
+}
+
+extern BOOL PTARangeEmptyOrNotFound(NSRange range) {
+  return range.location == NSNotFound || range.length == 0;
 }
 
 @implementation UIGestureRecognizer (PTAUtil)

@@ -13,7 +13,7 @@ static const CGFloat kInputBarWidth = 60;
 @implementation PTADocumentViewModel
 
 - (instancetype)init {
-  return [self initWithLoading:NO text:nil selectedCharacterRange:NSMakeRange(NSNotFound, 0)];
+  return [self initWithLoading:NO text:nil selectedCharacterRange:PTANullRange];
 }
 
 - (instancetype)initWithLoading:(BOOL)loading text:(NSString *)text selectedCharacterRange:(NSRange)range {
@@ -120,7 +120,7 @@ static const CGFloat kInputBarWidth = 60;
                                         kInputBarWidth,
                                         CGRectGetHeight(_textView.bounds));
 
-  if (_viewModel.selectedCharacterRange.location == NSNotFound) {
+  if (PTARangeEmptyOrNotFound(_viewModel.selectedCharacterRange)) {
     _selectionRectangle.frame = CGRectMake(0, CGRectGetMidY(_selectionRectangle.frame),
                                            CGRectGetWidth(_textView.bounds), 0);
                                            
@@ -147,7 +147,7 @@ static const CGFloat kInputBarWidth = 60;
     [_spinner stopAnimating];
   }
 
-  if (_viewModel.selectedCharacterRange.location != NSNotFound &&
+  if (!PTARangeEmptyOrNotFound(_viewModel.selectedCharacterRange) &&
       CGRectGetHeight(_selectionRectangle.bounds) == 0) {
     // Position selection indicator for expand animation.
     CGRect boundingRect = [self fullWidthBoundingRectInTextView:_textView
@@ -199,7 +199,7 @@ static const CGFloat kInputBarWidth = 60;
 - (CGRect)fullWidthBoundingRectInTextView:(UITextView *)textView
                          ofCharacterRange:(NSRange)characterRange {
   NSParameterAssert(textView);
-  NSParameterAssert(characterRange.location != NSNotFound);
+  NSParameterAssert(!PTARangeEmptyOrNotFound(characterRange));
   NSRange glyphRange = [textView.layoutManager glyphRangeForCharacterRange:characterRange
                                                       actualCharacterRange:NULL];
   CGRect boundingRectInContainer = [textView.layoutManager boundingRectForGlyphRange:glyphRange

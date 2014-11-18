@@ -6,8 +6,11 @@
 //  Copyright (c) 2014 Mikey Lintz. All rights reserved.
 //
 
+extern const NSRange PTANullRange;  // length = 0, location = NSNotFound
+
 extern CGPoint PTAPointInvert(CGPoint point);
 extern CGPoint PTAPointAdd(CGPoint point1, CGPoint point2);
+extern BOOL PTARangeEmptyOrNotFound(NSRange range);
 
 @interface UIGestureRecognizer (PTAUtil)
 @property(nonatomic, readonly) BOOL isActive;

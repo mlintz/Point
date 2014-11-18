@@ -39,7 +39,7 @@
   NSParameterAssert(path);
   self = [super init];
   if (self) {
-    _selectedCharacterRange = NSMakeRange(NSNotFound, 0);
+    _selectedCharacterRange = PTANullRange;
     _filesystemManager = manager;
     _path = path;
 
@@ -81,7 +81,7 @@
   _documentView = [[PTADocumentView alloc] init];
   _documentView.delegate = self;
   PTADocumentViewModel *viewModel =
-      [[PTADocumentViewModel alloc] initWithLoading:YES text:nil selectedCharacterRange:NSMakeRange(NSNotFound, 0)];
+      [[PTADocumentViewModel alloc] initWithLoading:YES text:nil selectedCharacterRange:PTANullRange];
   [_documentView setViewModel:viewModel];
   self.view = _documentView;
 }
@@ -113,12 +113,12 @@
 - (void)documentView:(PTADocumentView *)documentView didChangeText:(NSString *)text {
   _file = [_filesystemManager writeString:text toFileAtPath:_path];
   NSAssert(!_file.error, @"Error writing to file: %@", _file.error);
-  _selectedCharacterRange = NSMakeRange(NSNotFound, 0);
+  _selectedCharacterRange = PTANullRange;
   [self updateView];
 }
 
 - (void)documentViewDidTapToCancelSelection:(PTADocumentView *)documentView {
-  _selectedCharacterRange = NSMakeRange(NSNotFound, 0);
+  _selectedCharacterRange = PTANullRange;
   [self updateView];
 }
 
@@ -131,7 +131,7 @@
 }
 
 - (void)documentView:(PTADocumentView *)documentView didDragToHighlightCharacterRange:(NSRange)range {
-  if (range.length == 0 || range.location == NSNotFound) {
+  if (PTARangeEmptyOrNotFound(range)) {
     return;
   }
   if (![[documentView.text substringWithRange:range] containsNonWhitespaceCharacters]) {
@@ -159,7 +159,7 @@
   [self.navigationController.visibleViewController.view.window makeToast:toastMessage duration:0.5f position:CSToastPositionCenter];
 
   NSRange oldSelectedCharacterRange = _selectedCharacterRange;
-  _selectedCharacterRange = NSMakeRange(NSNotFound, 0);
+  _selectedCharacterRange = PTANullRange;
   
   NSString *selectedText = [_documentView.text substringWithRange:oldSelectedCharacterRange];
   NSString *remainderText = [_documentView.text stringByReplacingCharactersInRange:oldSelectedCharacterRange withString:@""];
@@ -213,7 +213,7 @@
   BOOL isErrorAlertVisible = NO;
 
   BOOL animateRightBarButtom = (self.navigationItem.rightBarButtonItem != nil);
-  BOOL hasSelection = _selectedCharacterRange.length > 0 && _selectedCharacterRange.location != NSNotFound;
+  BOOL hasSelection = !PTARangeEmptyOrNotFound(_selectedCharacterRange);
   if (hasSelection && self.navigationItem.rightBarButtonItem != _sendToBarButton) {
     [self.navigationItem setRightBarButtonItem:_sendToBarButton animated:animateRightBarButtom];
   } else if (!hasSelection && self.navigationItem.rightBarButtonItem != _composeBarButton) {
@@ -251,18 +251,18 @@
 }
 
 + (NSRange)newlineBoundedRangeContainingRange:(NSRange)range inString:(NSString *)string {
-  if (range.location == NSNotFound || range.length == 0) {
+  if (PTARangeEmptyOrNotFound(range)) {
     return range;
   }
 
   NSCharacterSet *newlineCharacters = [NSCharacterSet newlineCharacterSet];
   NSRange preRange = NSMakeRange(0, range.location);
   NSRange prependingNewline = [string rangeOfCharacterFromSet:newlineCharacters options:NSBackwardsSearch range:preRange];
-  NSUInteger newLocation = prependingNewline.location == NSNotFound ? 0 : NSMaxRange(prependingNewline);
+  NSUInteger newLocation = PTARangeEmptyOrNotFound(prependingNewline) ? 0 : NSMaxRange(prependingNewline);
 
   NSRange postRange = NSMakeRange(range.location, string.length - range.location);
   NSRange postpendingNewline = [string rangeOfCharacterFromSet:newlineCharacters options:0 range:postRange];
-  NSUInteger newLength = postpendingNewline.location == NSNotFound
+  NSUInteger newLength = PTARangeEmptyOrNotFound(postpendingNewline)
       ? string.length - newLocation
       : NSMaxRange(postpendingNewline) - newLocation;
   
