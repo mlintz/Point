@@ -28,7 +28,7 @@ CGPoint PTAPointAdd(CGPoint point1, CGPoint point2) {
 @implementation NSString (PTAUtil)
 
 - (BOOL)containsNonWhitespaceCharacters {
-  return [[self stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] length];
+  return [[self stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] length];
 }
 
 - (NSString *)pta_stringBySquashingWhitespace:(NSString *)replacementString {

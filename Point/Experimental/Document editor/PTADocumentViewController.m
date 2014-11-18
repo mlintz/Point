@@ -123,15 +123,21 @@
 }
 
 - (void)documentViewDidDragToHighlightAllText:(PTADocumentView *)documentView {
+  if (![documentView.text containsNonWhitespaceCharacters]) {
+    return;
+  }
   _selectedCharacterRange = NSMakeRange(0, _documentView.text.length);
   [self updateView];
 }
 
 - (void)documentView:(PTADocumentView *)documentView didDragToHighlightCharacterRange:(NSRange)range {
-  if (range.length == 0) {
+  if (range.length == 0 || range.location == NSNotFound) {
     return;
   }
-  // XXX(mlintz): reject highlighted range if just newline
+  if (![[documentView.text substringWithRange:range] containsNonWhitespaceCharacters]) {
+    return;
+  }
+
   NSRange oldCharacterRange = _selectedCharacterRange;
   _selectedCharacterRange = range;
   _selectedCharacterRange = [[self class] newlineBoundedRangeContainingRange:_selectedCharacterRange
