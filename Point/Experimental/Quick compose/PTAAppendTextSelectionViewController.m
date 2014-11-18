@@ -77,7 +77,7 @@
 }
 
 - (void)didSelectCreateFileWithName:(NSString *)name {
-  NSString *filename = [NSString stringWithFormat:@"%@.txt", [[name lowercaseStringWithLocale:nil] pta_stringBySquashingWhitespace:@"-"]];
+  NSString *filename = [NSString stringWithFormat:@"%@.txt", [[name lowercaseStringWithLocale:nil] pta_stringBySquashingWhitespace:@"_"]];
   NSString *message;
   if ([_manager containsFileWithName:filename]) {
     message = [NSString stringWithFormat:@"File %@ already exists", filename];
