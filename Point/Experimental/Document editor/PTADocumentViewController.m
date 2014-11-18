@@ -9,8 +9,10 @@
 #import "PTADocumentViewController.h"
 #import "PTAComposeBarButtonItem.h"
 #import "PTADocumentView.h"
+#import "PTADocumentCollectionViewController.h"
+#import "UIView+Toast.h"
 
-@interface PTADocumentViewController ()<PTADocumentViewDelegate, PTAFileObserver>
+@interface PTADocumentViewController ()<PTADocumentViewDelegate, PTAFileObserver, PTADocumentCollectionDelegate>
 @end
 
 @implementation PTADocumentViewController {
@@ -22,6 +24,9 @@
   UIAlertController *_newVersionAlertController;
   UIAlertController *_errorAlertController;
   NSRange _selectedCharacterRange;
+  
+  UIBarButtonItem *_composeBarButton;
+  UIBarButtonItem *_sendToBarButton;
 }
 
 - (instancetype)init {
@@ -38,9 +43,13 @@
     _filesystemManager = manager;
     _path = path;
 
+    _composeBarButton = [[PTAComposeBarButtonItem alloc] initWithController:self filesystemManager:_filesystemManager];
+    _sendToBarButton = [[UIBarButtonItem alloc] initWithTitle:@"Send to file"
+                                                        style:UIBarButtonItemStylePlain
+                                                       target:self
+                                                       action:@selector(handleAddToFileTapped:)];
     self.navigationItem.title = _path.name;
-    self.navigationItem.rightBarButtonItem =
-        [[PTAComposeBarButtonItem alloc] initWithController:self filesystemManager:_filesystemManager];
+    self.navigationItem.rightBarButtonItem = _composeBarButton;
 
     __weak id weakSelf = self;
     UIAlertAction *action;
@@ -89,7 +98,6 @@
   [super viewDidDisappear:animated];
   [_filesystemManager removeFileObserver:self forPath:_path];
   [_filesystemManager releaseFileForPath:_path];
-  _file = nil;
 }
 
 #pragma mark - PTAFileObserver
@@ -135,13 +143,72 @@
   [self updateView];
 }
 
+#pragma mark - PTADocumentCollectionDelegate
+
+- (void)documentCollectionController:(PTADocumentCollectionViewController *)controller didSelectPath:(DBPath *)path {
+  NSParameterAssert(path);
+  NSString *toastMessage = [NSString stringWithFormat:@"Sent text to %@", path.name];
+  [self.navigationController.visibleViewController.view.window makeToast:toastMessage duration:0.5f position:CSToastPositionCenter];
+  [self dismissViewControllerAnimated:YES completion:nil];
+  if ([path isEqual:_file.info.path]) {
+    return;
+  }
+  NSRange oldSelectedCharacterRange = _selectedCharacterRange;
+  _selectedCharacterRange = NSMakeRange(NSNotFound, 0);
+  
+  NSString *selectedText = [_documentView.text substringWithRange:oldSelectedCharacterRange];
+  NSString *remainderText = [_documentView.text stringByReplacingCharactersInRange:oldSelectedCharacterRange withString:@""];
+
+  // Append text to new path
+  PTAFile *newFile = [_filesystemManager openFileForPath:path];
+  NSAssert(!newFile.error, @"Error opening file for append: %@", newFile.error);
+  newFile = [_filesystemManager appendString:selectedText toFileAtPath:path];
+  NSAssert(!newFile.error, @"Error appending text (%@) to file: %@", selectedText, newFile.error);
+  [_filesystemManager releaseFileForPath:path];
+
+  // Remove text from existing file
+  [_filesystemManager openFileForPath:_file.info.path];  // Re-open file in case file was closed in viewDidDisappear.
+  _file = [_filesystemManager writeString:remainderText toFileAtPath:_file.info.path];
+  NSAssert(!_file.error, @"Error writing text (%@) to file: %@", remainderText, _file.error);
+  [_filesystemManager releaseFileForPath:_file.info.path];
+
+  [self updateView];
+}
+
 #pragma mark - Private
+
+- (void)handleAddToFileTapped:(id)sender {
+  PTADocumentCollectionViewController *collectionController =
+      [[PTADocumentCollectionViewController alloc] initWithFilesystemManager:_filesystemManager];
+  collectionController.delegate = self;
+  collectionController.navigationItem.leftBarButtonItem =
+      [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop
+                                                    target:self
+                                                    action:@selector(handleDocumentControllerCancelled:)];
+
+  UINavigationController *navigationController =
+      [[UINavigationController alloc] initWithRootViewController:collectionController];
+
+  [self presentViewController:navigationController animated:YES completion:nil];
+}
+
+- (void)handleDocumentControllerCancelled:(id)sender {
+  [self dismissViewControllerAnimated:YES completion:nil];
+}
 
 - (void)updateView {
   NSString *text;
   BOOL showLoading = NO;
   BOOL isNewVersionAlertVisible = NO;
   BOOL isErrorAlertVisible = NO;
+
+  BOOL animateRightBarButtom = (self.navigationItem.rightBarButtonItem != nil);
+  BOOL hasSelection = _selectedCharacterRange.length > 0 && _selectedCharacterRange.location != NSNotFound;
+  if (hasSelection && self.navigationItem.rightBarButtonItem != _sendToBarButton) {
+    [self.navigationItem setRightBarButtonItem:_sendToBarButton animated:animateRightBarButtom];
+  } else if (!hasSelection && self.navigationItem.rightBarButtonItem != _composeBarButton) {
+    [self.navigationItem setRightBarButtonItem:_composeBarButton animated:animateRightBarButtom];
+  }
 
   if (!_file) {
     // Everything is hidden
@@ -187,7 +254,7 @@
   NSRange postpendingNewline = [string rangeOfCharacterFromSet:newlineCharacters options:0 range:postRange];
   NSUInteger newLength = postpendingNewline.location == NSNotFound
       ? string.length - newLocation
-      : postpendingNewline.location - newLocation;
+      : NSMaxRange(postpendingNewline) - newLocation;
   
   return NSMakeRange(newLocation, newLength);
 }
