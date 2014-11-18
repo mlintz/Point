@@ -10,34 +10,29 @@
 
 #import "PTAFileInfo.h"
 
-static NSString *PTAEmojiForFile(DBError *error,
-                                 BOOL isOpen,
-                                 BOOL hasNewerVersion,
-                                 BOOL cached,
-                                 DBFileState state,
-                                 float progress) {
-  if (error) {
+static NSString *PTAEmojiForFile(PTAFile *file) {
+  if (file.error) {
     return @"‼️";
   }
-  if (!isOpen) {
+  if (!file.isOpen) {
     return @"🔒";
   }
-  if (hasNewerVersion) {
+  if (file.hasNewerVersion) {
     return @"💥";
   }
-  if (!cached && (state == DBFileStateIdle)) {
+  if (!file.cached && (file.state == DBFileStateIdle)) {
     return @"📭";
   }
-  if (state != DBFileStateIdle) {
-    NSString *direction = state == DBFileStateUploading ? @"⬆️" : @"⬇️";
+  if (file.state != DBFileStateIdle) {
+    NSString *direction = (file.state) == DBFileStateUploading ? @"⬆️" : @"⬇️";
     NSString *progressEmoji;
-    if (progress == 0) {
+    if (file.progress == 0) {
       progressEmoji = @"🌑";
-    } else if (progress < 0.33f) {
+    } else if (file.progress < 0.33f) {
       progressEmoji = @"🌒";
-    } else if (progress < 0.66f) {
+    } else if (file.progress < 0.66f) {
       progressEmoji = @"🌓";
-    } else if (progress < 1) {
+    } else if (file.progress < 1) {
       progressEmoji = @"🌔";
     } else {
       progressEmoji = @"🌕";
@@ -66,11 +61,12 @@ static NSString *PTAEmojiForFile(DBError *error,
     _hasNewerVersion = (file.newerStatus != nil);
     _content = [content copy];
     _progress = file.status.progress;
-
-    NSString *emojiStatus = PTAEmojiForFile(_error, _isOpen, _hasNewerVersion, _cached, _state, _progress);
-    _nameWithEmojiStatus = [NSString stringWithFormat:@"%@%@", emojiStatus, _info.path.name];
   }
   return self;
+}
+
+- (NSString *)nameWithEmojiStatus {
+  return [NSString stringWithFormat:@"%@%@", PTAEmojiForFile(self), self.info.path.name];
 }
 
 - (id)copyWithZone:(NSZone *)zone {
