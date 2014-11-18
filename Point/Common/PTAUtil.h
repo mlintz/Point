@@ -16,6 +16,10 @@ extern BOOL PTARangeEmptyOrNotFound(NSRange range);
 @property(nonatomic, readonly) BOOL isActive;
 @end
 
+@interface UIImage (PTAUtil)
++ (UIImage *)pta_imageWithFillColor:(UIColor *)color;
+@end
+
 @interface NSString (PTAUtil)
 - (BOOL)containsNonWhitespaceCharacters;
 - (NSString *)pta_stringBySquashingWhitespace:(NSString *)replacementString;

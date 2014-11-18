@@ -29,6 +29,24 @@ extern BOOL PTARangeEmptyOrNotFound(NSRange range) {
 
 @end
 
+@implementation UIImage (PTAUtil)
+
++ (UIImage *)pta_imageWithFillColor:(UIColor *)color {
+  NSParameterAssert(color);
+  CGFloat width = 1;
+  CGFloat height = 1;
+
+  UIGraphicsBeginImageContextWithOptions(CGSizeMake(width, height), YES, 0);
+  [color setFill];
+  UIRectFill(CGRectMake(0, 0, width, height));
+  UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+  UIGraphicsEndImageContext();
+
+  return image;
+}
+
+@end
+
 @implementation NSString (PTAUtil)
 
 - (BOOL)containsNonWhitespaceCharacters {

@@ -29,9 +29,13 @@
     _textView = [[UITextView alloc] init];
     _textView.backgroundColor = [UIColor lightGrayColor];
     [self addSubview:_textView];
-    
+
+    UIImage *normalBackground = [UIImage pta_imageWithFillColor:[UIColor lightGrayColor]];
+    UIImage *highlightedBackground = [UIImage pta_imageWithFillColor:[UIColor darkGrayColor]];
+
     _addToInboxButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    _addToInboxButton.backgroundColor = [UIColor lightGrayColor];
+    [_addToInboxButton setBackgroundImage:normalBackground forState:UIControlStateNormal];
+    [_addToInboxButton setBackgroundImage:highlightedBackground forState:UIControlStateHighlighted];
     [_addToInboxButton setTitle:@"Add to Inbox" forState:UIControlStateNormal];
     [_addToInboxButton setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
     _addToInboxButton.contentEdgeInsets = buttonInset;
@@ -41,7 +45,8 @@
     [self addSubview:_addToInboxButton];
     
     _addToOtherButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    _addToOtherButton.backgroundColor = [UIColor lightGrayColor];
+    [_addToOtherButton setBackgroundImage:normalBackground forState:UIControlStateNormal];
+    [_addToOtherButton setBackgroundImage:highlightedBackground forState:UIControlStateHighlighted];
     [_addToOtherButton setTitle:@"Add to ..." forState:UIControlStateNormal];
     [_addToOtherButton setTitleColor:[UIColor darkTextColor] forState:UIControlStateNormal];
     _addToOtherButton.contentEdgeInsets = buttonInset;
