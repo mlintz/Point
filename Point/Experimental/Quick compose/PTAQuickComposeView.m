@@ -12,6 +12,8 @@
   UITextView *_textView;
   UIButton *_addToInboxButton;
   UIButton *_addToOtherButton;
+
+  CGRect _keyboardFrame;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame {
@@ -47,8 +49,29 @@
                           action:@selector(handleOtherButtonTapped:)
                 forControlEvents:UIControlEventTouchUpInside];
     [self addSubview:_addToOtherButton];
+
+    [[NSNotificationCenter defaultCenter] addObserverForName:UIKeyboardWillChangeFrameNotification
+                                                      object:nil
+                                                       queue:nil
+                                                  usingBlock:^(NSNotification *note) {
+      NSNumber *keyboardRectValue = note.userInfo[UIKeyboardFrameEndUserInfoKey];
+      _keyboardFrame = [keyboardRectValue CGRectValue];
+      NSNumber *timeValue = note.userInfo[UIKeyboardAnimationDurationUserInfoKey];
+      NSTimeInterval duration = (NSTimeInterval)[timeValue doubleValue];
+      [self setNeedsLayout];
+      [UIView animateWithDuration:duration animations:^{
+        [self layoutIfNeeded];
+      }];
+    }];
+
+    _keyboardFrame = CGRectNull;
   }
+
   return self;
+}
+
+- (void)dealloc {
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void)layoutSubviews {
@@ -56,11 +79,16 @@
   
   CGFloat buttonHeight = MAX([_addToInboxButton sizeThatFits:self.bounds.size].height,
                              [_addToOtherButton sizeThatFits:self.bounds.size].height);
-  _addToOtherButton.frame = CGRectIntegral(CGRectMake(0, CGRectGetMaxY(self.bounds) - padding - buttonHeight,
+  CGFloat maxY = CGRectIsEmpty(_keyboardFrame)
+      ? CGRectGetMaxY(self.bounds)
+      : CGRectGetMinY([self convertRect:_keyboardFrame fromView:self.window]);
+  _addToOtherButton.frame = CGRectIntegral(CGRectMake(0, maxY - padding - buttonHeight,
                                                       CGRectGetWidth(self.bounds), buttonHeight));
   _addToInboxButton.frame = CGRectIntegral(CGRectOffset(_addToOtherButton.frame, 0, -padding - buttonHeight));
 
-  _textView.frame = CGRectMake(0, 0, CGRectGetWidth(self.bounds), 200);
+  CGFloat textViewHeight = CGRectGetMinY(_addToInboxButton.frame) - padding;
+
+  _textView.frame = CGRectMake(0, 0, CGRectGetWidth(self.bounds), textViewHeight);
 }
 
 - (NSString *)text {

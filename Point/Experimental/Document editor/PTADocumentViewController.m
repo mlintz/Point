@@ -147,12 +147,14 @@
 
 - (void)documentCollectionController:(PTADocumentCollectionViewController *)controller didSelectPath:(DBPath *)path {
   NSParameterAssert(path);
-  NSString *toastMessage = [NSString stringWithFormat:@"Sent text to %@", path.name];
-  [self.navigationController.visibleViewController.view.window makeToast:toastMessage duration:0.5f position:CSToastPositionCenter];
+  
   [self dismissViewControllerAnimated:YES completion:nil];
   if ([path isEqual:_file.info.path]) {
     return;
   }
+  NSString *toastMessage = [NSString stringWithFormat:@"Sent text to %@", path.name];
+  [self.navigationController.visibleViewController.view.window makeToast:toastMessage duration:0.5f position:CSToastPositionCenter];
+
   NSRange oldSelectedCharacterRange = _selectedCharacterRange;
   _selectedCharacterRange = NSMakeRange(NSNotFound, 0);
   

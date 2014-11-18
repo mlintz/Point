@@ -9,6 +9,7 @@
 @class PTAFilesystemManager;
 @class PTADocumentCollectionViewController;
 
+// XXX(mlintz): this could probably just be a block argument.
 @protocol PTADocumentCollectionDelegate <NSObject>
 
 - (void)documentCollectionController:(PTADocumentCollectionViewController *)controller

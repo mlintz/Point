@@ -10,6 +10,8 @@
 
 @protocol PTADocumentViewDelegate <NSObject>
 
+// XXX(mlintz): this should return a PTADocumentViewModel and second parameter should just be text string.
+// Then we can drop the _text ivar and instead just return internal textview text property
 - (void)documentView:(PTADocumentView *)documentView didChangeTextInRange:(NSRange)range replacementText:(NSString *)text;
 - (void)documentView:(PTADocumentView *)documentView didDragToHighlightCharacterRange:(NSRange)range;
 - (void)documentViewDidDragToHighlightAllText:(PTADocumentView *)documentView;
