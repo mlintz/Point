@@ -16,7 +16,7 @@
 #endif
 
 #import <Dropbox/Dropbox.h>
-#import "PTACategories.h"
+#import "PTAUtil.h"
 #import "PTAFile.h"
 #import "PTAFileInfo.h"
 #import "PTAFilesystemManager.h"

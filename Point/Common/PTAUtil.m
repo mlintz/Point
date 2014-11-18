@@ -6,8 +6,6 @@
 //  Copyright (c) 2014 Mikey Lintz. All rights reserved.
 //
 
-#import "PTACategories.h"
-
 const NSRange PTANullRange = { .length = 0, .location = NSNotFound };
 
 CGPoint PTAPointInvert(CGPoint point) {
