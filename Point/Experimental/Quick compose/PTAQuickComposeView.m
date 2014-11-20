@@ -28,6 +28,7 @@
 
     _textView = [[UITextView alloc] init];
     _textView.backgroundColor = [UIColor lightGrayColor];
+    _textView.font = [UIFont systemFontOfSize:16];
     [self addSubview:_textView];
 
     UIImage *normalBackground = [UIImage pta_imageWithFillColor:[UIColor lightGrayColor]];

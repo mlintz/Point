@@ -48,6 +48,7 @@ static const CGFloat kInputBarWidth = 60;
 
     _textView = [[UITextView alloc] init];
     _textView.delegate = self;
+    _textView.font = [UIFont systemFontOfSize:16];
     UIEdgeInsets textViewInsets = _textView.textContainerInset;
     _textView.textContainerInset =
         UIEdgeInsetsMake(textViewInsets.top, textViewInsets.left, textViewInsets.bottom, textViewInsets.right + kInputBarWidth);
