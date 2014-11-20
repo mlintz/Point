@@ -131,19 +131,13 @@
 }
 
 - (void)documentView:(PTADocumentView *)documentView didDragToHighlightCharacterRange:(NSRange)range {
-  if (PTARangeEmptyOrNotFound(range)) {
-    return;
-  }
-  if (![[documentView.text substringWithRange:range] containsNonWhitespaceCharacters]) {
-    return;
-  }
-
-  NSRange oldCharacterRange = _selectedCharacterRange;
-  _selectedCharacterRange = range;
-  _selectedCharacterRange = [[self class] newlineBoundedRangeContainingRange:_selectedCharacterRange
-                                                                    inString:documentView.text];
-  if (oldCharacterRange.length > 0) {
-    _selectedCharacterRange = NSUnionRange(oldCharacterRange, _selectedCharacterRange);
+  if (![[documentView.text substringWithRange:range] containsNonWhitespaceCharacters]
+      || PTARangeEmptyOrNotFound(range)) {
+    _selectedCharacterRange = PTANullRange;
+  } else {
+    _selectedCharacterRange = range;
+    _selectedCharacterRange = [[self class] newlineBoundedRangeContainingRange:_selectedCharacterRange
+                                                                      inString:documentView.text];
   }
   [self updateView];
 }
