@@ -9,10 +9,10 @@
 #import "PTADocumentViewController.h"
 #import "PTAComposeBarButtonItem.h"
 #import "PTADocumentView.h"
-#import "PTADocumentCollectionViewController.h"
+#import "PTAAppendTextSelectionViewController.h"
 #import "UIView+Toast.h"
 
-@interface PTADocumentViewController ()<PTADocumentViewDelegate, PTAFileObserver>
+@interface PTADocumentViewController ()<PTADocumentViewDelegate, PTAFileObserver, PTAAppendTextSelectionDelegate>
 @end
 
 @implementation PTADocumentViewController {
@@ -148,28 +148,20 @@
   [self updateView];
 }
 
-- (void)documentCollectionDidSelectPath:(DBPath *)path {
+- (void)appendTextControllerDidComplete:(PTAAppendTextSelectionViewController *)controller
+                               withPath:(DBPath *)path {
   NSParameterAssert(path);
   
   [self dismissViewControllerAnimated:YES completion:nil];
   if ([path isEqual:_file.info.path]) {
     return;
   }
-  NSString *toastMessage = [NSString stringWithFormat:@"Sent text to %@", path.name];
-  [self.navigationController.visibleViewController.view.window makeToast:toastMessage duration:0.5f position:CSToastPositionCenter];
 
   NSRange oldSelectedCharacterRange = _selectedCharacterRange;
   _selectedCharacterRange = PTANullRange;
   
-  NSString *selectedText = [_documentView.text substringWithRange:oldSelectedCharacterRange];
-  NSString *remainderText = [_documentView.text stringByReplacingCharactersInRange:oldSelectedCharacterRange withString:@""];
-
-  // Append text to new path
-  PTAFile *newFile = [_filesystemManager openFileForPath:path];
-  NSAssert(!newFile.error, @"Error opening file for append: %@", newFile.error);
-  newFile = [_filesystemManager appendString:selectedText toFileAtPath:path];
-  NSAssert(!newFile.error, @"Error appending text (%@) to file: %@", selectedText, newFile.error);
-  [_filesystemManager releaseFileForPath:path];
+  NSString *remainderText = [_documentView.text stringByReplacingCharactersInRange:oldSelectedCharacterRange
+                                                                        withString:@""];
 
   // Remove text from existing file
   [_filesystemManager openFileForPath:_file.info.path];  // Re-open file in case file was closed in viewDidDisappear.
@@ -180,24 +172,32 @@
   [self updateView];
 }
 
+- (void)appendTextControllerDidCancel:(PTAAppendTextSelectionViewController *)controller {
+  [self dismissViewControllerAnimated:YES completion:nil];
+}
+
 #pragma mark - Private
 
 - (void)handleAddToFileTapped:(id)sender {
-  __weak id weakSelf = self;
-  PTADocumentCollectionSelection callback = ^(PTADocumentCollectionViewController *collectionController,
-                                              DBPath *path) {
-    [weakSelf documentCollectionDidSelectPath:path];
-  };
-  PTADocumentCollectionViewController *collectionController =
-      [[PTADocumentCollectionViewController alloc] initWithFilesystemManager:_filesystemManager
-                                                                    callback:callback];
-  collectionController.navigationItem.leftBarButtonItem =
-      [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop
-                                                    target:self
-                                                    action:@selector(handleDocumentControllerCancelled:)];
+  NSString *appendText = [_documentView.text substringWithRange:_selectedCharacterRange];
+  PTAAppendTextSelectionViewController *appendTextController =
+      [[PTAAppendTextSelectionViewController alloc] initWithFilesystemManager:_filesystemManager
+                                                                   appendText:appendText];
+  appendTextController.delegate = self;
+//  PTADocumentCollectionSelection callback = ^(PTADocumentCollectionViewController *collectionController,
+//                                              DBPath *path) {
+//    [weakSelf documentCollectionDidSelectPath:path];
+//  };
+//  PTADocumentCollectionViewController *collectionController =
+//      [[PTADocumentCollectionViewController alloc] initWithFilesystemManager:_filesystemManager
+//                                                                    callback:callback];
+//  collectionController.navigationItem.leftBarButtonItem =
+//      [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop
+//                                                    target:self
+//                                                    action:@selector(handleDocumentControllerCancelled:)];
 
   UINavigationController *navigationController =
-      [[UINavigationController alloc] initWithRootViewController:collectionController];
+      [[UINavigationController alloc] initWithRootViewController:appendTextController];
 
   [self presentViewController:navigationController animated:YES completion:nil];
 }

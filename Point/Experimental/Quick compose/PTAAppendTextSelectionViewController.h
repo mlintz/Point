@@ -9,7 +9,9 @@
 @class PTAAppendTextSelectionViewController;
 
 @protocol PTAAppendTextSelectionDelegate <NSObject>
-- (void)appendTextControllerDidComplete:(PTAAppendTextSelectionViewController *)controller;
+- (void)appendTextControllerDidCancel:(PTAAppendTextSelectionViewController *)controller;
+- (void)appendTextControllerDidComplete:(PTAAppendTextSelectionViewController *)controller
+                               withPath:(DBPath *)path;
 @end
 
 @interface PTAAppendTextSelectionViewController : UIViewController

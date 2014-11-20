@@ -67,7 +67,12 @@ static const NSTimeInterval kToastDuration = 0.5;
   [self presentViewController:navigationController animated:YES completion:nil];
 }
 
-- (void)appendTextControllerDidComplete:(PTAAppendTextSelectionViewController *)controller {
+- (void)appendTextControllerDidCancel:(PTAAppendTextSelectionViewController *)controller {
+  [self.navigationController dismissViewControllerAnimated:YES completion:nil];  // Append selection view controller
+}
+
+- (void)appendTextControllerDidComplete:(PTAAppendTextSelectionViewController *)controller
+                               withPath:(DBPath *)path {
   [self.navigationController dismissViewControllerAnimated:YES completion:nil];  // Append selection view controller
   [self.navigationController dismissViewControllerAnimated:YES completion:nil];  // Self
 }

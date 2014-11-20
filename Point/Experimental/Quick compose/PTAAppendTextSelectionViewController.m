@@ -73,7 +73,7 @@
   [_manager openFileForPath:path];
   [_manager appendString:_appendText toFileAtPath:path];
   [_manager releaseFileForPath:path];
-  [self.delegate appendTextControllerDidComplete:self];
+  [self.delegate appendTextControllerDidComplete:self withPath:path];
 }
 
 - (void)didSelectCreateFileWithName:(NSString *)name {
@@ -87,7 +87,7 @@
     [_manager writeString:initialText toFileAtPath:file.info.path];
     [_manager releaseFileForPath:file.info.path];
     message = [NSString stringWithFormat:@"Created %@", filename];
-    [self.delegate appendTextControllerDidComplete:self];
+    [self.delegate appendTextControllerDidComplete:self withPath:file.info.path];
   }
   [self.view.window makeToast:message duration:0.5 position:CSToastPositionCenter];
 }
@@ -114,7 +114,7 @@
 }
 
 - (void)didSelectClose:(id)sender {
-  [self.delegate appendTextControllerDidComplete:self];
+  [self.delegate appendTextControllerDidCancel:self];
 }
 
 @end
