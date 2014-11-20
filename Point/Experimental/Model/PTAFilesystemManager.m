@@ -67,23 +67,19 @@
   return nil;
 }
 
-- (instancetype)initWithFilesystem:(DBFilesystem *)fileSystem
-                          rootPath:(DBPath *)rootPath
-                     inboxFilePath:(DBPath *)inboxFilePath {
-  NSParameterAssert(fileSystem);
+- (instancetype)initWithAccountManager:(DBAccountManager *)accountManager
+                              rootPath:(DBPath *)rootPath
+                         inboxFilePath:(DBPath *)inboxFilePath {
+  NSParameterAssert(accountManager);
   NSParameterAssert(rootPath);
   NSParameterAssert(inboxFilePath);
   self = [super init];
   if (self) {
-    _filesystem = fileSystem;
     _rootPath = rootPath;
-    _inboxFilePath = inboxFilePath;
-    _fileObservers = [NSMutableDictionary dictionary];
-    _directoryObservers = [NSHashTable weakObjectsHashTable];
-    _pathsNeedingDispatch = [NSMutableSet set];
-    _filesMap = [NSMutableDictionary dictionary];
-    
+    _filesystem = accountManager.linkedAccount
+        ? [[DBFilesystem alloc] initWithAccount:accountManager.linkedAccount] : nil;
     __weak id weakSelf = self;
+    __weak id weakAccountManager = accountManager;
     void(^filesystemChangeCallback)() = ^void() {
       PTAFilesystemManager *strongSelf = weakSelf;
       if (!strongSelf) {
@@ -98,6 +94,27 @@
         [strongSelf publishDirectoryChanged];
       });
     };
+
+    [accountManager addObserver:self block:^(DBAccount *account) {
+      PTAFilesystemManager *strongSelf = weakSelf;
+      DBAccountManager *strongAccountManager = weakAccountManager;
+      if (!strongSelf) {
+        return;
+      }
+      [strongSelf->_filesystem removeObserver:strongSelf];
+      strongSelf->_filesystem = strongAccountManager.linkedAccount
+          ? [[DBFilesystem alloc] initWithAccount:strongAccountManager.linkedAccount] : nil;
+      [strongSelf->_filesystem addObserver:self block:filesystemChangeCallback];
+      [strongSelf->_filesystem addObserver:self
+                        forPathAndChildren:strongSelf->_rootPath
+                                     block:filesystemChangeCallback];
+      [strongSelf publishDirectoryChanged];
+    }];
+    _inboxFilePath = inboxFilePath;
+    _fileObservers = [NSMutableDictionary dictionary];
+    _directoryObservers = [NSHashTable weakObjectsHashTable];
+    _pathsNeedingDispatch = [NSMutableSet set];
+    _filesMap = [NSMutableDictionary dictionary];
     
     [_filesystem addObserver:self block:filesystemChangeCallback];
     [_filesystem addObserver:self forPathAndChildren:_rootPath block:filesystemChangeCallback];
@@ -150,6 +167,7 @@
 
 - (PTAFile *)openFileForPath:(DBPath *)path {
   NSParameterAssert(path);
+  NSAssert(_filesystem, @"Can't open path %@ with nil filesystem", path);
   if (_filesMap[path] != nil) {
     PTAFileRetainEntry *entry = _filesMap[path];
     entry.count++;
@@ -169,6 +187,7 @@
 - (PTAFile *)createFileWithName:(NSString *)name {
   NSParameterAssert(name);
   NSParameterAssert(name.length);
+  NSAssert(_filesystem, @"Can't create file %@ with nil filesystem", name);
   DBError *error;
   DBPath *path = [_rootPath childPath:name];
   DBFile *file = [_filesystem createFile:path error:&error];

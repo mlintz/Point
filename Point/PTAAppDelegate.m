@@ -25,18 +25,11 @@ static NSString *kInboxFileName = @"!!inbox.txt";
 
   DBAccountManager *accountManager = [[DBAccountManager alloc] initWithAppKey:[PTAAuthenticationValues key]
                                                                        secret:[PTAAuthenticationValues secret]];
-  UIViewController *rootViewController;
-  if (accountManager.linkedAccount) {
-    DBFilesystem *filesystem = [[DBFilesystem alloc] initWithAccount:accountManager.linkedAccount];
-    PTAFilesystemManager *manager =
-        [[PTAFilesystemManager alloc] initWithFilesystem:filesystem
-                                                rootPath:DBPath.root
-                                           inboxFilePath:[DBPath.root childPath:kInboxFileName]];
-    rootViewController = [[PTAMainCollectionViewController alloc] initWithFilesystemManager:manager];
-  } else {
-    rootViewController = [[UIViewController alloc] init];
-  }
-
+  [DBAccountManager setSharedManager:accountManager];
+  PTAFilesystemManager *manager = [[PTAFilesystemManager alloc] initWithAccountManager:accountManager
+                                                                              rootPath:DBPath.root
+                                                                         inboxFilePath:[DBPath.root childPath:kInboxFileName]];
+  UIViewController *rootViewController = [[PTAMainCollectionViewController alloc] initWithFilesystemManager:manager];
   self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:rootViewController];
   [self.window makeKeyAndVisible];
 
@@ -52,11 +45,8 @@ static NSString *kInboxFileName = @"!!inbox.txt";
   sourceApplication:(NSString *)sourceApplication
          annotation:(id)annotation {
   DBAccount *account = [[DBAccountManager sharedManager] handleOpenURL:url];
-  if (account) {
-    NSLog(@"App linked successfully!");
-    return YES;
-  }
-  return NO;
+  NSAssert(account, @"Failed to create account.");
+  return YES;
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application

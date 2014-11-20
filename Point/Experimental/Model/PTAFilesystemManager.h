@@ -23,9 +23,9 @@
 
 @property(nonatomic, readonly) PTADirectory *directory;
 
-- (instancetype)initWithFilesystem:(DBFilesystem *)fileSystem
-                          rootPath:(DBPath *)rootPath
-                     inboxFilePath:(DBPath *)inboxFilePath;
+- (instancetype)initWithAccountManager:(DBAccountManager *)accountManager
+                              rootPath:(DBPath *)rootPath
+                         inboxFilePath:(DBPath *)inboxFilePath;
 
 // add/remove parameters must be non-nil
 - (void)addDirectoryObserver:(id<PTADirectoryObserver>)observer;
