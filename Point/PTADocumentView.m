@@ -361,7 +361,10 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
                                                          inTextContainer:textView.textContainer];
   NSRange characterRange = [textView.layoutManager characterRangeForGlyphRange:glyphRange
                                                                actualGlyphRange:NULL];
-  return [_textView.text pta_newlineBoundedRangeContainingRange:characterRange];
+  if (PTARangeEmptyOrNotFound(characterRange)) {
+    return characterRange;
+  }
+  return [_textView.text paragraphRangeForRange:characterRange];
 }
 
 - (CGRect)fullWidthBoundingRectInTextView:(UITextView *)textView
