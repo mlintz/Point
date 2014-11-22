@@ -75,7 +75,7 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
 
 @end
 
-@interface PTADocumentView ()<UITextViewDelegate, PTASelectionDelegate, UIGestureRecognizerDelegate>
+@interface PTADocumentView ()<UITextViewDelegate, UIGestureRecognizerDelegate>
 @end
 
 @implementation PTADocumentView {
@@ -231,7 +231,9 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
 #pragma mark - UITextViewDelegate
 
 - (void)textViewDidChange:(UITextView *)textView {
-  [self.delegate documentView:self didChangeText:self.text];
+  if (!_selectionManager) {
+    [self.delegate documentView:self didChangeText:self.text];
+  }
 }
 
 #pragma mark - UIGestureRecognizerDelegate
@@ -239,6 +241,9 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
   NSParameterAssert(gestureRecognizer == _selectionRectPanRecognizer);
   CGPoint locationInTextView = [gestureRecognizer locationInView:_textView];
+  if (CGRectIsEmpty(_selectionRectangle.frame)) {
+    return NO;
+  }
   if (locationInTextView.x >= CGRectGetMinX(_selectionInputBar.frame)) {
     return NO;
   }
@@ -273,32 +278,32 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
 #pragma mark - Private
 
 - (void)updateSelectionTransform:(PTASelectionTransform *)selectionTransform {
+  PTASelectionTransform *oldTransform = _selectionTransform;
   _selectionTransform = selectionTransform;
   CGAffineTransform translation;
   NSString *text;
   if (_selectionTransform) {
+    CGPoint contentOffset = _textView.contentOffset;
     translation = CGAffineTransformMakeTranslation(_selectionTransform.selectionViewTranslation.x,
                                                    _selectionTransform.selectionViewTranslation.y);
-    text = [_viewModel.text pta_stringByApplyingTransform:_selectionTransform
-                               withSelectedCharacterRange:_viewModel.selectedCharacterRange];
+    UITextPosition *locationBeginning = oldTransform
+        ? [_textView positionFromPosition:_textView.beginningOfDocument offset:oldTransform.insertionLocation]
+        : [_textView positionFromPosition:_textView.beginningOfDocument offset:_viewModel.selectedCharacterRange.location];
+    UITextPosition *locationEnd = [_textView positionFromPosition:locationBeginning offset:_viewModel.selectedCharacterRange.length];
+    UITextRange *textRange = [_textView textRangeFromPosition:locationBeginning toPosition:locationEnd];
+    NSString *selectedText = [_textView textInRange:textRange];
+    [_textView replaceRange:textRange withText:@""];
+
+    UITextPosition *insertionLocation = [_textView positionFromPosition:_textView.beginningOfDocument
+                                                                 offset:_selectionTransform.insertionLocation];
+    UITextRange *insertionRange = [_textView textRangeFromPosition:insertionLocation toPosition:insertionLocation];
+    [_textView replaceRange:insertionRange withText:selectedText];
+    _textView.contentOffset = contentOffset;
   } else {
     translation = CGAffineTransformIdentity;
     text = _viewModel.text;
   }
-  text = text ? text : @"";
   _selectionRectangle.transform = translation;
-
-  CGPoint contentOffset = _textView.contentOffset;
-  _textView.text = text;
-  _textView.contentOffset = contentOffset;
-
-  if (_selectionTransform) {
-    NSRange range = NSMakeRange(_selectionTransform.insertionLocation,
-                                _viewModel.selectedCharacterRange.length);
-    [_textView.textStorage addAttribute:NSForegroundColorAttributeName
-                                  value:[UIColor lightGrayColor]
-                                  range:range];
-  }
 }
 
 - (void)handleSelectionBarPan:(UIPanGestureRecognizer *)panRecognizer {
@@ -329,28 +334,67 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
 - (void)handleSelectionRectPan:(UIPanGestureRecognizer *)panRecognizer {
   switch (panRecognizer.state) {
     case UIGestureRecognizerStateBegan: {
+      NSAssert(!PTARangeEmptyOrNotFound(_viewModel.selectedCharacterRange), @"Empty selectedCharacterRange");
+      NSArray *paragraphsArray = [self paragraphsArrayForTextView:_textView
+                                          excludingCharacterRange:_viewModel.selectedCharacterRange];
       _selectionManager = [[PTASelectionManager alloc] initWithSelectionRect:_selectionRectangle.frame
                                                               selectionRange:_viewModel.selectedCharacterRange
-                                                                    delegate:self];
-      [self updateSelectionTransform:_selectionManager.transform];
+                                                                  paragraphs:paragraphsArray];
+      PTASelectionTransform *initialTransform = [_selectionManager transformForTranslation:CGPointZero];
+      [self updateSelectionTransform:initialTransform];
       break;
     }
     case UIGestureRecognizerStateChanged: {
-      CGPoint translation = [panRecognizer translationInView:_textView];
-      PTASelectionTransform *transform = [_selectionManager updateWithTranslation:translation];
+      CGPoint translation = [panRecognizer translationInView:self];
+      PTASelectionTransform *transform = [_selectionManager transformForTranslation:translation];
       [self updateSelectionTransform:transform];
       break;
     }
     case UIGestureRecognizerStateEnded:
     case UIGestureRecognizerStateCancelled: {
       NSString *text = _textView.text;
-      [self.delegate documentView:self didChangeText:text];
       [self updateSelectionTransform:nil];
+      _selectionManager = nil;
+      [self.delegate documentView:self didChangeText:text];
+      break;
     }
     default: {
     
     }
   }
+}
+
+- (NSArray *)paragraphsArrayForTextView:(UITextView *)textView
+                excludingCharacterRange:(NSRange)excludedRange {
+  __block BOOL enumerationIncludedExcludedRange = NO;
+  NSMutableArray *paragraphs = [NSMutableArray array];
+  CGRect excludedRect = [self fullWidthBoundingRectInTextView:textView ofCharacterRange:excludedRange];
+  CGFloat excludedRectHeight = CGRectGetHeight(excludedRect);
+  [textView.text enumerateSubstringsInRange:NSMakeRange(0, textView.text.length)
+                                    options:NSStringEnumerationByParagraphs
+                                 usingBlock:^(NSString *substring, NSRange substringRange,
+                                              NSRange enclosingRange,
+                                              BOOL *stop) {
+    if (NSEqualRanges(excludedRange, enclosingRange)) {
+      NSAssert(!enumerationIncludedExcludedRange, @"Seen excluded range (%@) twice", NSStringFromRange(excludedRange));
+      enumerationIncludedExcludedRange = YES;
+      return;
+    }
+    NSString *text = [textView.text substringWithRange:enclosingRange];
+    NSUInteger location = enumerationIncludedExcludedRange
+        ? enclosingRange.location - excludedRange.length
+        : enclosingRange.location;
+    CGRect enclosingRect = [self fullWidthBoundingRectInTextView:textView ofCharacterRange:enclosingRange];
+    if (enumerationIncludedExcludedRange) {
+      enclosingRect = CGRectOffset(enclosingRect, 0, -excludedRectHeight);
+    }
+    CGFloat midY = CGRectGetMidY(enclosingRect);
+    PTAParagraph *paragraph = [PTAParagraph paragraphWithText:text location:location midY:midY];
+    [paragraphs addObject:paragraph];
+  }];
+
+  NSAssert(enumerationIncludedExcludedRange, @"Missed excluded range");
+  return paragraphs;
 }
 
 - (NSRange)characterRangeOfTextView:(UITextView *)textView

@@ -10,29 +10,26 @@
 
 // Immutable
 @interface PTASelectionTransform : NSObject
-
 @property(nonatomic, readonly) CGPoint selectionViewTranslation;
 @property(nonatomic, readonly) NSUInteger insertionLocation;  // Relative to string selected characters removed
-
 @end
 
-@protocol PTASelectionDelegate <NSObject>
+// Immutable
+@interface PTAParagraph : NSObject
 
-- (CGRect)insertionAreaRect;
+@property(nonatomic, readonly) NSString *text;
+@property(nonatomic, readonly) NSUInteger textLocation;
+@property(nonatomic, readonly) CGFloat midY;
 
-// outRect may be NULL
-- (NSRange)rangeForParagraphContainingPoint:(CGPoint)point
-                                    outRect:(CGRect *)outRect;
++ (instancetype)paragraphWithText:(NSString *)text location:(NSUInteger)location midY:(CGFloat)midY;
 
 @end
 
 @interface PTASelectionManager : NSObject
 
-@property(nonatomic, readonly) PTASelectionTransform *transform;
-
 - (instancetype)initWithSelectionRect:(CGRect)selectionFrame
                        selectionRange:(NSRange)selectionRange
-                             delegate:(id<PTASelectionDelegate>)delegate;
-- (PTASelectionTransform *)updateWithTranslation:(CGPoint)translation;
+                           paragraphs:(NSArray *)paragraphs;  // NSArray<PTAParagraph>
+- (PTASelectionTransform *)transformForTranslation:(CGPoint)translation;
 
 @end
