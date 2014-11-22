@@ -16,8 +16,12 @@ CGPoint PTAPointAdd(CGPoint point1, CGPoint point2) {
   return CGPointMake(point1.x + point2.x, point1.y + point2.y);
 }
 
-extern BOOL PTARangeEmptyOrNotFound(NSRange range) {
+BOOL PTARangeEmptyOrNotFound(NSRange range) {
   return range.location == NSNotFound || range.length == 0;
+}
+
+NSUInteger PTARangeHash(NSRange range) {
+  return range.location ^ range.length;
 }
 
 @implementation UIGestureRecognizer (PTAUtil)
@@ -61,6 +65,30 @@ extern BOOL PTARangeEmptyOrNotFound(NSRange range) {
     return [component length] > 0;
   }]];
   return [components componentsJoinedByString:replacementString];
+}
+
+- (NSRange)pta_newlineBoundedRangeContainingRange:(NSRange)range {
+  if (PTARangeEmptyOrNotFound(range)) {
+    return range;
+  }
+
+  NSCharacterSet *newlineCharacters = [NSCharacterSet newlineCharacterSet];
+  NSRange preRange = NSMakeRange(0, range.location);
+  NSRange prependingNewline = [self rangeOfCharacterFromSet:newlineCharacters
+                                                    options:NSBackwardsSearch
+                                                      range:preRange];
+  NSUInteger newLocation =
+      PTARangeEmptyOrNotFound(prependingNewline) ? 0 : NSMaxRange(prependingNewline);
+
+  NSRange postRange = NSMakeRange(range.location, self.length - range.location);
+  NSRange postpendingNewline = [self rangeOfCharacterFromSet:newlineCharacters
+                                                     options:0
+                                                       range:postRange];
+  NSUInteger newLength = PTARangeEmptyOrNotFound(postpendingNewline)
+      ? self.length - newLocation
+      : NSMaxRange(postpendingNewline) - newLocation;
+  
+  return NSMakeRange(newLocation, newLength);
 }
 
 @end

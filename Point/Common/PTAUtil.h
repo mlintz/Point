@@ -11,6 +11,7 @@ extern const NSRange PTANullRange;  // length = 0, location = NSNotFound
 extern CGPoint PTAPointInvert(CGPoint point);
 extern CGPoint PTAPointAdd(CGPoint point1, CGPoint point2);
 extern BOOL PTARangeEmptyOrNotFound(NSRange range);
+extern NSUInteger PTARangeHash(NSRange range);
 
 @interface UIGestureRecognizer (PTAUtil)
 @property(nonatomic, readonly) BOOL isActive;
@@ -23,6 +24,7 @@ extern BOOL PTARangeEmptyOrNotFound(NSRange range);
 @interface NSString (PTAUtil)
 - (BOOL)containsNonWhitespaceCharacters;
 - (NSString *)pta_stringBySquashingWhitespace:(NSString *)replacementString;
+- (NSRange)pta_newlineBoundedRangeContainingRange:(NSRange)range;
 @end
 
 @interface UIView (PTAUtil)

@@ -136,11 +136,11 @@
     _selectedCharacterRange = PTANullRange;
   } else {
     _selectedCharacterRange = range;
-    _selectedCharacterRange = [[self class] newlineBoundedRangeContainingRange:_selectedCharacterRange
-                                                                      inString:documentView.text];
   }
   [self updateView];
 }
+
+#pragma mark - PTAAppendTextSelectionDelegate
 
 - (void)appendTextControllerDidComplete:(PTAAppendTextSelectionViewController *)controller
                                withPath:(DBPath *)path {
@@ -243,25 +243,6 @@
                                                                       text:text
                                                     selectedCharacterRange:_selectedCharacterRange];
   [_documentView setViewModel:vm];
-}
-
-+ (NSRange)newlineBoundedRangeContainingRange:(NSRange)range inString:(NSString *)string {
-  if (PTARangeEmptyOrNotFound(range)) {
-    return range;
-  }
-
-  NSCharacterSet *newlineCharacters = [NSCharacterSet newlineCharacterSet];
-  NSRange preRange = NSMakeRange(0, range.location);
-  NSRange prependingNewline = [string rangeOfCharacterFromSet:newlineCharacters options:NSBackwardsSearch range:preRange];
-  NSUInteger newLocation = PTARangeEmptyOrNotFound(prependingNewline) ? 0 : NSMaxRange(prependingNewline);
-
-  NSRange postRange = NSMakeRange(range.location, string.length - range.location);
-  NSRange postpendingNewline = [string rangeOfCharacterFromSet:newlineCharacters options:0 range:postRange];
-  NSUInteger newLength = PTARangeEmptyOrNotFound(postpendingNewline)
-      ? string.length - newLocation
-      : NSMaxRange(postpendingNewline) - newLocation;
-  
-  return NSMakeRange(newLocation, newLength);
 }
 
 @end

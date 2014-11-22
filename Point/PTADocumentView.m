@@ -7,8 +7,41 @@
 //
 
 #import "PTADocumentView.h"
+#import "PTASelectionManager.h"
 
 static const CGFloat kInputBarWidth = 60;
+static const CGFloat kSelectionRectVerticalPadding = 30;
+
+@interface NSString (PTASelection)
+- (NSString *)pta_stringByApplyingTransform:(PTASelectionTransform *)transform
+                 withSelectedCharacterRange:(NSRange)selectedCharacterRange;
+- (NSString *)pta_stringByUnapplyingTransform:(PTASelectionTransform *)transform
+                 withSelectedCharacterRange:(NSRange)selectedCharacterRange;
+@end
+
+@implementation NSString (PTASelection)
+
+- (NSString *)pta_stringByApplyingTransform:(PTASelectionTransform *)transform
+                 withSelectedCharacterRange:(NSRange)selectedCharacterRange {
+  NSString *selectedText = [self substringWithRange:selectedCharacterRange];
+  NSString *stringWithoutSelectedCharacters =
+      [self stringByReplacingCharactersInRange:selectedCharacterRange
+                                    withString:@""];
+  NSRange insertionRange = NSMakeRange(transform.insertionLocation, 0);
+  return [stringWithoutSelectedCharacters stringByReplacingCharactersInRange:insertionRange
+                                                                  withString:selectedText];
+}
+
+- (NSString *)pta_stringByUnapplyingTransform:(PTASelectionTransform *)transform
+                   withSelectedCharacterRange:(NSRange)selectedCharacterRange {
+  NSRange range = NSMakeRange(transform.insertionLocation, selectedCharacterRange.length);
+  NSString *selectedText = [self substringWithRange:range];
+  NSString *stringWithoutSelectedCharacters = [self stringByReplacingCharactersInRange:range withString:@""];
+  return [stringWithoutSelectedCharacters stringByReplacingCharactersInRange:NSMakeRange(selectedCharacterRange.location, 0)
+                                                                  withString:selectedText];
+}
+
+@end
 
 @implementation PTADocumentViewModel
 
@@ -26,9 +59,23 @@ static const CGFloat kInputBarWidth = 60;
   return self;
 }
 
+- (BOOL)isEqual:(id)object {
+  if (![object isKindOfClass:[self class]]) {
+    return NO;
+  }
+  PTADocumentViewModel *other = object;
+  return _isLoading == other.isLoading
+      && NSEqualRanges(_selectedCharacterRange, other.selectedCharacterRange)
+      && [_text isEqualToString:other.text];
+}
+
+- (NSUInteger)hash {
+  return (_isLoading ? 1 : 0) ^ [_text hash] ^ PTARangeHash(_selectedCharacterRange);
+}
+
 @end
 
-@interface PTADocumentView ()<UITextViewDelegate>
+@interface PTADocumentView ()<UITextViewDelegate, PTASelectionDelegate, UIGestureRecognizerDelegate>
 @end
 
 @implementation PTADocumentView {
@@ -36,9 +83,14 @@ static const CGFloat kInputBarWidth = 60;
   UIActivityIndicatorView *_spinner;
   UIView *_selectionInputBar;
   UIView *_selectionRectangle;
-  
+
+  UIPanGestureRecognizer *_selectionRectPanRecognizer;
+
   CGRect _keyboardFrame;
   PTADocumentViewModel *_viewModel;
+
+  PTASelectionManager *_selectionManager;
+  PTASelectionTransform *_selectionTransform;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame {
@@ -53,6 +105,11 @@ static const CGFloat kInputBarWidth = 60;
     _textView.textContainerInset =
         UIEdgeInsetsMake(textViewInsets.top, textViewInsets.left, textViewInsets.bottom, textViewInsets.right + kInputBarWidth);
     [self addSubview:_textView];
+    
+    _selectionRectPanRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self
+                                                                          action:@selector(handleSelectionRectPan:)];
+    _selectionRectPanRecognizer.delegate = self;
+    [_textView addGestureRecognizer:_selectionRectPanRecognizer];
     
     NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
     [nc addObserverForName:UIKeyboardWillChangeFrameNotification
@@ -100,8 +157,47 @@ static const CGFloat kInputBarWidth = 60;
 }
 
 - (NSString *)text {
-  return _textView.text;
+  if (!_selectionTransform || PTARangeEmptyOrNotFound(_viewModel.selectedCharacterRange)) {
+    return _textView.text;
+  }
+  return [_textView.text pta_stringByUnapplyingTransform:_selectionTransform
+                              withSelectedCharacterRange:_viewModel.selectedCharacterRange];
 }
+
+- (void)setViewModel:(PTADocumentViewModel *)viewModel {
+  NSParameterAssert(viewModel);
+  if ([_viewModel isEqual:viewModel]) {
+    return;
+  }
+
+  _viewModel = viewModel;
+  if (![_viewModel.text isEqualToString:self.text]) {
+    _textView.text = _viewModel.text;
+  }
+
+  if (_viewModel.isLoading) {
+    [_spinner startAnimating];
+  } else {
+    [_spinner stopAnimating];
+  }
+
+  if (!PTARangeEmptyOrNotFound(_viewModel.selectedCharacterRange) &&
+      CGRectGetHeight(_selectionRectangle.bounds) == 0) {
+    // Position selection indicator for expand animation.
+    CGRect boundingRect = [self fullWidthBoundingRectInTextView:_textView
+                                               ofCharacterRange:_viewModel.selectedCharacterRange];
+    CGFloat midY = CGRectGetMidY(boundingRect);
+    _selectionRectangle.frame = CGRectMake(CGRectGetMinX(boundingRect), midY, CGRectGetWidth(boundingRect), 0);
+  }
+  [UIView animateWithDuration:0.15f animations:^{
+    [self setNeedsLayout];
+    [self layoutIfNeeded];
+  }];
+  
+  [self updateSelectionTransform:nil];
+}
+
+#pragma mark - UIView
 
 - (void)layoutSubviews {
   if (CGRectIsEmpty(_keyboardFrame)) {
@@ -132,37 +228,78 @@ static const CGFloat kInputBarWidth = 60;
   }
 }
 
+#pragma mark - UITextViewDelegate
+
 - (void)textViewDidChange:(UITextView *)textView {
   [self.delegate documentView:self didChangeText:self.text];
 }
 
-- (void)setViewModel:(PTADocumentViewModel *)viewModel {
-  _viewModel = viewModel;
-  if (![_viewModel.text isEqualToString:self.text]) {
-    _textView.text = _viewModel.text;
-  }
+#pragma mark - UIGestureRecognizerDelegate
 
-  if (_viewModel.isLoading) {
-    [_spinner startAnimating];
-  } else {
-    [_spinner stopAnimating];
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
+  NSParameterAssert(gestureRecognizer == _selectionRectPanRecognizer);
+  CGPoint locationInTextView = [gestureRecognizer locationInView:_textView];
+  if (locationInTextView.x >= CGRectGetMinX(_selectionInputBar.frame)) {
+    return NO;
   }
+  CGRect expandedSelectionBarFrame =
+      CGRectInset(_selectionRectangle.frame, 0, -kSelectionRectVerticalPadding);
+  return CGRectContainsPoint(expandedSelectionBarFrame, locationInTextView);
+}
 
-  if (!PTARangeEmptyOrNotFound(_viewModel.selectedCharacterRange) &&
-      CGRectGetHeight(_selectionRectangle.bounds) == 0) {
-    // Position selection indicator for expand animation.
-    CGRect boundingRect = [self fullWidthBoundingRectInTextView:_textView
-                                               ofCharacterRange:_viewModel.selectedCharacterRange];
-    CGFloat midY = CGRectGetMidY(boundingRect);
-    _selectionRectangle.frame = CGRectMake(CGRectGetMinX(boundingRect), midY, CGRectGetWidth(boundingRect), 0);
+#pragma mark - PTASelectionDelegate
+
+- (CGRect)insertionAreaRect  {
+  NSAssert(!PTARangeEmptyOrNotFound(_viewModel.selectedCharacterRange),
+           @"Calling %@ with empty selectedCharacterRange.",
+           NSStringFromSelector(_cmd));
+  NSAssert(_selectionTransform, @"Calling %@ with nil selectionTransform", NSStringFromSelector(_cmd));
+
+  NSRange insertionRange = NSMakeRange(_selectionTransform.insertionLocation,
+                                       _viewModel.selectedCharacterRange.length);
+  return [self fullWidthBoundingRectInTextView:_textView ofCharacterRange:insertionRange];
+}
+
+- (NSRange)rangeForParagraphContainingPoint:(CGPoint)point outRect:(CGRect *)outRect {
+  NSRange characterRange = [self characterRangeOfTextView:_textView paragraphContainingPoint:point];
+  if (outRect != NULL) {
+    *outRect = PTARangeEmptyOrNotFound(characterRange)
+        ? CGRectNull
+        : [self fullWidthBoundingRectInTextView:_textView ofCharacterRange:characterRange];
   }
-  [UIView animateWithDuration:0.15f animations:^{
-    [self setNeedsLayout];
-    [self layoutIfNeeded];
-  }];
+  return characterRange;
 }
 
 #pragma mark - Private
+
+- (void)updateSelectionTransform:(PTASelectionTransform *)selectionTransform {
+  _selectionTransform = selectionTransform;
+  CGAffineTransform translation;
+  NSString *text;
+  if (_selectionTransform) {
+    translation = CGAffineTransformMakeTranslation(_selectionTransform.selectionViewTranslation.x,
+                                                   _selectionTransform.selectionViewTranslation.y);
+    text = [_viewModel.text pta_stringByApplyingTransform:_selectionTransform
+                               withSelectedCharacterRange:_viewModel.selectedCharacterRange];
+  } else {
+    translation = CGAffineTransformIdentity;
+    text = _viewModel.text;
+  }
+  text = text ? text : @"";
+  _selectionRectangle.transform = translation;
+
+  CGPoint contentOffset = _textView.contentOffset;
+  _textView.text = text;
+  _textView.contentOffset = contentOffset;
+
+  if (_selectionTransform) {
+    NSRange range = NSMakeRange(_selectionTransform.insertionLocation,
+                                _viewModel.selectedCharacterRange.length);
+    [_textView.textStorage addAttribute:NSForegroundColorAttributeName
+                                  value:[UIColor lightGrayColor]
+                                  range:range];
+  }
+}
 
 - (void)handleSelectionBarPan:(UIPanGestureRecognizer *)panRecognizer {
   CGFloat outsideDragThreshold = 15;
@@ -178,7 +315,7 @@ static const CGFloat kInputBarWidth = 60;
     return;
   }
   NSRange selectedCharacterRange = [self characterRangeOfTextView:_textView
-                                              lineContainingPoint:[panRecognizer locationInView:_textView]];
+                                         paragraphContainingPoint:[panRecognizer locationInView:_textView]];
   [self.delegate documentView:self didDragToHighlightCharacterRange:selectedCharacterRange];
 }
 
@@ -189,12 +326,42 @@ static const CGFloat kInputBarWidth = 60;
   }
 }
 
-- (NSRange)characterRangeOfTextView:(UITextView *)textView lineContainingPoint:(CGPoint)pointInTextView {
+- (void)handleSelectionRectPan:(UIPanGestureRecognizer *)panRecognizer {
+  switch (panRecognizer.state) {
+    case UIGestureRecognizerStateBegan: {
+      _selectionManager = [[PTASelectionManager alloc] initWithSelectionRect:_selectionRectangle.frame
+                                                              selectionRange:_viewModel.selectedCharacterRange
+                                                                    delegate:self];
+      [self updateSelectionTransform:_selectionManager.transform];
+      break;
+    }
+    case UIGestureRecognizerStateChanged: {
+      CGPoint translation = [panRecognizer translationInView:_textView];
+      PTASelectionTransform *transform = [_selectionManager updateWithTranslation:translation];
+      [self updateSelectionTransform:transform];
+      break;
+    }
+    case UIGestureRecognizerStateEnded:
+    case UIGestureRecognizerStateCancelled: {
+      NSString *text = _textView.text;
+      [self.delegate documentView:self didChangeText:text];
+      [self updateSelectionTransform:nil];
+    }
+    default: {
+    
+    }
+  }
+}
+
+- (NSRange)characterRangeOfTextView:(UITextView *)textView
+           paragraphContainingPoint:(CGPoint)pointInTextView {
   NSParameterAssert(textView);
   CGRect boundingRect = CGRectMake(0, pointInTextView.y, CGRectGetWidth(textView.bounds), 1);
   NSRange glyphRange = [textView.layoutManager glyphRangeForBoundingRect:boundingRect
                                                          inTextContainer:textView.textContainer];
-  return [textView.layoutManager characterRangeForGlyphRange:glyphRange actualGlyphRange:NULL];
+  NSRange characterRange = [textView.layoutManager characterRangeForGlyphRange:glyphRange
+                                                               actualGlyphRange:NULL];
+  return [_textView.text pta_newlineBoundedRangeContainingRange:characterRange];
 }
 
 - (CGRect)fullWidthBoundingRectInTextView:(UITextView *)textView

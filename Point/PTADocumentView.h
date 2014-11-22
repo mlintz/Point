@@ -8,7 +8,7 @@
 
 @class PTADocumentView;
 
-// Immutable
+// Immutable. Implemented object equality.
 @interface PTADocumentViewModel : NSObject
 
 @property(nonatomic, readonly) BOOL isLoading;
@@ -21,7 +21,6 @@
 
 @protocol PTADocumentViewDelegate <NSObject>
 
-// Return nil to change nothing.
 - (void)documentView:(PTADocumentView *)documentView didChangeText:(NSString *)text;
 - (void)documentView:(PTADocumentView *)documentView didDragToHighlightCharacterRange:(NSRange)range;
 - (void)documentViewDidDragToHighlightAllText:(PTADocumentView *)documentView;
