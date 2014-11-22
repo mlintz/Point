@@ -278,12 +278,11 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
 #pragma mark - Private
 
 - (void)updateSelectionTransform:(PTASelectionTransform *)selectionTransform {
+  CGPoint contentOffset = _textView.contentOffset;
   PTASelectionTransform *oldTransform = _selectionTransform;
   _selectionTransform = selectionTransform;
   CGAffineTransform translation;
-  NSString *text;
   if (_selectionTransform) {
-    CGPoint contentOffset = _textView.contentOffset;
     translation = CGAffineTransformMakeTranslation(_selectionTransform.selectionViewTranslation.x,
                                                    _selectionTransform.selectionViewTranslation.y);
     UITextPosition *locationBeginning = oldTransform
@@ -298,12 +297,22 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
                                                                  offset:_selectionTransform.insertionLocation];
     UITextRange *insertionRange = [_textView textRangeFromPosition:insertionLocation toPosition:insertionLocation];
     [_textView replaceRange:insertionRange withText:selectedText];
-    _textView.contentOffset = contentOffset;
+
+    [_textView.textStorage addAttribute:NSForegroundColorAttributeName
+                                  value:[UIColor lightGrayColor]
+                                  range:NSMakeRange(_selectionTransform.insertionLocation, _viewModel.selectedCharacterRange.length)];
+
   } else {
+    if (oldTransform){
+      NSUInteger oldInsertionLocation =
+          oldTransform ? oldTransform.insertionLocation : _viewModel.selectedCharacterRange.location;
+      [_textView.textStorage removeAttribute:NSForegroundColorAttributeName
+                                       range:NSMakeRange(oldInsertionLocation, _viewModel.selectedCharacterRange.length)];
+    }
     translation = CGAffineTransformIdentity;
-    text = _viewModel.text;
   }
   _selectionRectangle.transform = translation;
+  _textView.contentOffset = contentOffset;
 }
 
 - (void)handleSelectionBarPan:(UIPanGestureRecognizer *)panRecognizer {
