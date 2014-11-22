@@ -122,14 +122,6 @@
   [self updateView];
 }
 
-- (void)documentViewDidDragToHighlightAllText:(PTADocumentView *)documentView {
-  if (![documentView.text containsNonWhitespaceCharacters]) {
-    return;
-  }
-  _selectedCharacterRange = NSMakeRange(0, _documentView.text.length);
-  [self updateView];
-}
-
 - (void)documentView:(PTADocumentView *)documentView didDragToHighlightCharacterRange:(NSRange)range {
   if (![[documentView.text substringWithRange:range] containsNonWhitespaceCharacters]
       || PTARangeEmptyOrNotFound(range)) {

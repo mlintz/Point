@@ -26,7 +26,6 @@
 - (BOOL)documentView:(PTADocumentView *)document
     shouldChangeTextInRange:(NSRange)range
             replacementText:(NSString *)text;
-- (void)documentViewDidDragToHighlightAllText:(PTADocumentView *)documentView;
 - (void)documentViewDidTapToCancelSelection:(PTADocumentView *)documentView;
 
 @end

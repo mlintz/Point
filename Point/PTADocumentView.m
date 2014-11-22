@@ -321,18 +321,11 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
 }
 
 - (void)handleSelectionBarPan:(UIPanGestureRecognizer *)panRecognizer {
-  CGFloat outsideDragThreshold = 15;
-
   if (panRecognizer.state != UIGestureRecognizerStateBegan &&
       panRecognizer.state != UIGestureRecognizerStateChanged) {
     return;
   }
   [_textView resignFirstResponder];
-  CGPoint locationInInputBar = [panRecognizer locationInView:_selectionInputBar];
-  if (CGRectGetMinX(_selectionInputBar.bounds) - locationInInputBar.x > outsideDragThreshold) {
-    [self.delegate documentViewDidDragToHighlightAllText:self];
-    return;
-  }
   NSRange selectedCharacterRange = [self characterRangeOfTextView:_textView
                                          paragraphContainingPoint:[panRecognizer locationInView:_textView]];
   [self.delegate documentView:self didDragToHighlightCharacterRange:selectedCharacterRange];
