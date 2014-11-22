@@ -123,11 +123,14 @@
 }
 
 - (void)documentView:(PTADocumentView *)documentView didDragToHighlightCharacterRange:(NSRange)range {
-  if (![[documentView.text substringWithRange:range] containsNonWhitespaceCharacters]
-      || PTARangeEmptyOrNotFound(range)) {
+  if (PTARangeEmptyOrNotFound(range)) {
     _selectedCharacterRange = PTANullRange;
   } else {
-    _selectedCharacterRange = range;
+    NSRange initialCharacterRange = NSMakeRange(range.location, 1);
+    NSRange selectedCharacterRange = [documentView.text paragraphRangeForRange:initialCharacterRange];
+    NSString *selectedString = [documentView.text substringWithRange:selectedCharacterRange];
+    _selectedCharacterRange =
+        [selectedString containsNonWhitespaceCharacters] ? selectedCharacterRange : PTANullRange;
   }
   [self updateView];
 }
