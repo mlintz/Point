@@ -140,6 +140,13 @@
   [self updateView];
 }
 
+- (BOOL)documentView:(PTADocumentView *)document
+    shouldChangeTextInRange:(NSRange)range
+            replacementText:(NSString *)text {
+  NSString *updatedText = [document.text stringByReplacingCharactersInRange:range withString:text];
+  return [updatedText pta_terminatesInNewline];
+}
+
 #pragma mark - PTAAppendTextSelectionDelegate
 
 - (void)appendTextControllerDidComplete:(PTAAppendTextSelectionViewController *)controller
@@ -216,6 +223,9 @@
     showLoading = YES;
   } else {
     text = _file.content;
+    if (![text pta_terminatesInNewline]) {
+      text = [NSString stringWithFormat:@"%@\n", text];
+    }
   }
 
   BOOL animateRightBarButtom = (self.navigationItem.rightBarButtonItem != nil);

@@ -23,6 +23,9 @@
 
 - (void)documentView:(PTADocumentView *)documentView didChangeText:(NSString *)text;
 - (void)documentView:(PTADocumentView *)documentView didDragToHighlightCharacterRange:(NSRange)range;
+- (BOOL)documentView:(PTADocumentView *)document
+    shouldChangeTextInRange:(NSRange)range
+            replacementText:(NSString *)text;
 - (void)documentViewDidDragToHighlightAllText:(PTADocumentView *)documentView;
 - (void)documentViewDidTapToCancelSelection:(PTADocumentView *)documentView;
 

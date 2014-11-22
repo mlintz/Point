@@ -67,6 +67,14 @@ NSUInteger PTARangeHash(NSRange range) {
   return [components componentsJoinedByString:replacementString];
 }
 
+- (BOOL)pta_terminatesInNewline {
+  if (!self.length) {
+    return NO;
+  }
+  unichar lastChar = [self characterAtIndex:self.length - 1];
+  return [[NSCharacterSet newlineCharacterSet] characterIsMember:lastChar];
+}
+
 @end
 
 @implementation UIView (PTAUtil)

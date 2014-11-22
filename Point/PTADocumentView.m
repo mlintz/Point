@@ -236,6 +236,11 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
   }
 }
 
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
+  NSAssert(self.delegate, @"nil delegate");
+  return [self.delegate documentView:self shouldChangeTextInRange:range replacementText:text];
+}
+
 #pragma mark - UIGestureRecognizerDelegate
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {

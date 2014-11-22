@@ -24,6 +24,7 @@ extern NSUInteger PTARangeHash(NSRange range);
 @interface NSString (PTAUtil)
 - (BOOL)containsNonWhitespaceCharacters;
 - (NSString *)pta_stringBySquashingWhitespace:(NSString *)replacementString;
+- (BOOL)pta_terminatesInNewline;
 @end
 
 @interface UIView (PTAUtil)
