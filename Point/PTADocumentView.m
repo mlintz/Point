@@ -166,6 +166,7 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
 
 - (void)setViewModel:(PTADocumentViewModel *)viewModel {
   NSParameterAssert(viewModel);
+  [_selectionRectPanRecognizer cancel];
   if ([_viewModel isEqual:viewModel]) {
     return;
   }
@@ -194,7 +195,7 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
     [self layoutIfNeeded];
   }];
   
-  [self updateSelectionTransform:nil];
+//  [self updateSelectionTransform:nil];
 }
 
 #pragma mark - UIView
@@ -362,8 +363,7 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
       [self updateSelectionTransform:transform];
       break;
     }
-    case UIGestureRecognizerStateEnded:
-    case UIGestureRecognizerStateCancelled: {
+    case UIGestureRecognizerStateEnded: {
       _selectionManager = nil;
       NSAssert(!PTARangeEmptyOrNotFound(_viewModel.selectedCharacterRange),
                @"Ended reorder gesture with empty selection range: %@",
@@ -373,6 +373,14 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
       [self.delegate documentView:self
                didMoveTextInRange:_viewModel.selectedCharacterRange
                        toLocation:oldTransform.insertionLocation];
+      break;
+    }
+    case UIGestureRecognizerStateCancelled: {
+      _selectionManager = nil;
+      NSAssert(!PTARangeEmptyOrNotFound(_viewModel.selectedCharacterRange),
+               @"Ended reorder gesture with empty selection range: %@",
+               NSStringFromRange(_viewModel.selectedCharacterRange));
+      [self updateSelectionTransform:nil];
       break;
     }
     default: {

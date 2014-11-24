@@ -26,9 +26,14 @@ NSUInteger PTARangeHash(NSRange range) {
 
 @implementation UIGestureRecognizer (PTAUtil)
 
-- (BOOL)isActive {
+- (BOOL)pta_isActive {
   return self.state == UIGestureRecognizerStateBegan ||
       self.state == UIGestureRecognizerStateChanged;
+}
+
+- (void)cancel {
+  self.enabled = NO;
+  self.enabled = YES;
 }
 
 @end

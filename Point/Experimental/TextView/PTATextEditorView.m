@@ -216,7 +216,7 @@ static NSString *const kSpringAnimationKey = @"com.mikey.PTATextEditorView.sprin
   NSAssert(gestureRecognizer == _longPressRecognizer || gestureRecognizer == _panRecognizer, @"Unknown gestureRecognizer: %@", gestureRecognizer);
 
   if (gestureRecognizer == _panRecognizer) {
-    return _longPressRecognizer.isActive;
+    return _longPressRecognizer.pta_isActive;
   }
   if (gestureRecognizer == _longPressRecognizer && [self isLongPressEnabled]) {
     CGPoint touchLocation = [_longPressRecognizer locationInView:_textView];

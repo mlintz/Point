@@ -14,7 +14,11 @@ extern BOOL PTARangeEmptyOrNotFound(NSRange range);
 extern NSUInteger PTARangeHash(NSRange range);
 
 @interface UIGestureRecognizer (PTAUtil)
-@property(nonatomic, readonly) BOOL isActive;
+
+@property(nonatomic, readonly) BOOL pta_isActive;
+
+- (void)cancel;
+
 @end
 
 @interface UIImage (PTAUtil)
