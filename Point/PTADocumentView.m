@@ -282,6 +282,8 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
 
 #pragma mark - Private
 
+// Passing nil applies the current selectionTransform to the textview and sets the selectionRectangle's
+// transform to identity
 - (void)updateSelectionTransform:(PTASelectionTransform *)selectionTransform {
   CGPoint contentOffset = _textView.contentOffset;
   PTASelectionTransform *oldTransform = _selectionTransform;
@@ -315,6 +317,9 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
                                        range:NSMakeRange(oldInsertionLocation, _viewModel.selectedCharacterRange.length)];
     }
     translation = CGAffineTransformIdentity;
+    _selectionRectangle.frame = CGRectOffset(_selectionRectangle.frame,
+                                             oldTransform.selectionViewTranslation.x,
+                                             oldTransform.selectionViewTranslation.y);
   }
   _selectionRectangle.transform = translation;
   _textView.contentOffset = contentOffset;
@@ -359,10 +364,14 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
     }
     case UIGestureRecognizerStateEnded:
     case UIGestureRecognizerStateCancelled: {
-      NSString *text = _textView.text;
+      NSAssert(!PTARangeEmptyOrNotFound(_viewModel.selectedCharacterRange),
+               @"Ended reorder gesture with empty selection range: %@",
+               NSStringFromRange(_viewModel.selectedCharacterRange));
+      PTASelectionTransform *oldTransform = _selectionTransform;
       [self updateSelectionTransform:nil];
-      _selectionManager = nil;
-      [self.delegate documentView:self didChangeText:text];
+      [self.delegate documentView:self
+               didMoveTextInRange:_viewModel.selectedCharacterRange
+                       toLocation:oldTransform.insertionLocation];
       break;
     }
     default: {

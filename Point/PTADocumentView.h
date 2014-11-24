@@ -23,10 +23,15 @@
 
 - (void)documentView:(PTADocumentView *)documentView didChangeText:(NSString *)text;
 - (void)documentView:(PTADocumentView *)documentView didDragToHighlightCharacterRange:(NSRange)range;
+- (void)documentViewDidTapToCancelSelection:(PTADocumentView *)documentView;
+
+// Location is relative to text with range removed.
+- (void)documentView:(PTADocumentView *)documentView
+    didMoveTextInRange:(NSRange)range
+            toLocation:(NSUInteger)location;
 - (BOOL)documentView:(PTADocumentView *)document
     shouldChangeTextInRange:(NSRange)range
             replacementText:(NSString *)text;
-- (void)documentViewDidTapToCancelSelection:(PTADocumentView *)documentView;
 
 @end
 

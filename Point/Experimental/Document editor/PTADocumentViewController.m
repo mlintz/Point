@@ -135,6 +135,24 @@
   [self updateView];
 }
 
+- (void)documentView:(PTADocumentView *)documentView
+    didMoveTextInRange:(NSRange)range
+            toLocation:(NSUInteger)location {
+  NSString *selectedText = [_file.content substringWithRange:range];
+  NSString *textWithSelectedTextRemoved = [_file.content stringByReplacingCharactersInRange:range
+                                                                                 withString:@""];
+  NSString *newText = [textWithSelectedTextRemoved stringByReplacingCharactersInRange:NSMakeRange(location, 0)
+                                                                           withString:selectedText];
+
+  _file = [_filesystemManager writeString:newText toFileAtPath:_path];
+  NSAssert(!_file.error, @"Error writing text to file: %@", _file.error.localizedDescription);
+
+  if (!PTARangeEmptyOrNotFound(_selectedCharacterRange)) {
+    _selectedCharacterRange = NSMakeRange(location, _selectedCharacterRange.length);
+  }
+  [self updateView];
+}
+
 - (BOOL)documentView:(PTADocumentView *)document
     shouldChangeTextInRange:(NSRange)range
             replacementText:(NSString *)text {
