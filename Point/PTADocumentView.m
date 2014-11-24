@@ -242,6 +242,10 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
   return [self.delegate documentView:self shouldChangeTextInRange:range replacementText:text];
 }
 
+- (void)textViewDidBeginEditing:(UITextView *)textView {
+  [self.delegate documentView:self didDragToHighlightCharacterRange:PTANullRange];
+}
+
 #pragma mark - UIGestureRecognizerDelegate
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
