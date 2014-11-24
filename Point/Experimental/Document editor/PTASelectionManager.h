@@ -11,7 +11,7 @@
 // Immutable
 @interface PTASelectionTransform : NSObject
 @property(nonatomic, readonly) CGPoint selectionViewTranslation;
-@property(nonatomic, readonly) NSUInteger insertionLocation;  // Relative to string selected characters removed
+@property(nonatomic, readonly) NSUInteger insertionLocation;  // Relative to string with selected characters removed
 @end
 
 // Immutable

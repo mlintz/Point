@@ -8,6 +8,12 @@
 
 #import "PTASelectionManager.h"
 
+typedef NS_ENUM(NSInteger, PTASelectionManagerDirection) {
+  kPTASelectionManagerDirectionUnknown,
+  kPTASelectionManagerDirectionVertical,
+  kPTASelectionManagerDirectionHorizontal,
+};
+
 static NSComparator kParagraphComparator = ^NSComparisonResult(PTAParagraph *paragraph1,
                                                                PTAParagraph *paragraph2) {
   if (paragraph1.midY < paragraph2.midY) {
@@ -56,6 +62,7 @@ static NSComparator kParagraphComparator = ^NSComparisonResult(PTAParagraph *par
   CGRect _selectionFrame;
   NSRange _selectionRange;
   NSArray *_paragraphs;
+  PTASelectionManagerDirection _panDirection;
 }
 
 - (instancetype)init {
@@ -74,29 +81,52 @@ static NSComparator kParagraphComparator = ^NSComparisonResult(PTAParagraph *par
     _selectionFrame = selectionFrame;
     _selectionRange = selectionRange;
     _paragraphs = [paragraphs copy];
+    _panDirection = kPTASelectionManagerDirectionUnknown;
   }
   return self;
 }
 
 - (PTASelectionTransform *)transformForTranslation:(CGPoint)translation {
-  CGPoint verticalTranslation = CGPointMake(0, translation.y);
-  CGFloat selectionRectTop = CGRectGetMinY(_selectionFrame) + verticalTranslation.y;
-
-  PTAParagraph *searchParagraph = [PTAParagraph paragraphWithText:nil location:0 midY:selectionRectTop];
-  NSUInteger successorIndex = [_paragraphs indexOfObject:searchParagraph
-                                                      inSortedRange:NSMakeRange(0, _paragraphs.count)
-                                                            options:NSBinarySearchingInsertionIndex
-                                                    usingComparator:kParagraphComparator];
-  NSUInteger insertionLocation;
-  if (successorIndex < _paragraphs.count) {
-    PTAParagraph *successorParagraph = _paragraphs[successorIndex];
-    insertionLocation = successorParagraph.textLocation;
-  } else {
-    PTAParagraph *lastParagraph = [_paragraphs lastObject];
-    insertionLocation = lastParagraph.textLocation + lastParagraph.text.length;
+  if (_panDirection == kPTASelectionManagerDirectionUnknown) {
+    if (translation.x == 0 && translation.y == 0) {
+      // stay unknown
+    } else if (ABS(translation.y) > ABS(translation.x)) {
+      _panDirection = kPTASelectionManagerDirectionVertical;
+    } else {
+      _panDirection = kPTASelectionManagerDirectionHorizontal;
+    }
   }
 
-  return [PTASelectionTransform transformWithTranslation:verticalTranslation
+  CGPoint appliedTranslation;
+  NSUInteger insertionLocation;
+  switch (_panDirection) {
+    case kPTASelectionManagerDirectionUnknown:  // translation = {0, 0}
+    case kPTASelectionManagerDirectionHorizontal: {
+      appliedTranslation = CGPointMake(MIN(translation.x, 0), 0);
+      insertionLocation = _selectionRange.location;
+      break;
+    }
+    case kPTASelectionManagerDirectionVertical: {
+      appliedTranslation = CGPointMake(0, translation.y);
+      CGFloat selectionRectTop = CGRectGetMinY(_selectionFrame) + appliedTranslation.y;
+      
+      PTAParagraph *searchParagraph = [PTAParagraph paragraphWithText:nil location:0 midY:selectionRectTop];
+      NSUInteger successorIndex = [_paragraphs indexOfObject:searchParagraph
+                                               inSortedRange:NSMakeRange(0, _paragraphs.count)
+                                                     options:NSBinarySearchingInsertionIndex
+                                             usingComparator:kParagraphComparator];
+      if (successorIndex < _paragraphs.count) {
+        PTAParagraph *successorParagraph = _paragraphs[successorIndex];
+        insertionLocation = successorParagraph.textLocation;
+      } else {
+        PTAParagraph *lastParagraph = [_paragraphs lastObject];
+        insertionLocation = lastParagraph.textLocation + lastParagraph.text.length;
+      }
+      break;
+    }
+  }
+
+  return [PTASelectionTransform transformWithTranslation:appliedTranslation
                                        insertionLocation:insertionLocation];
 }
 

@@ -11,6 +11,7 @@
 
 static const CGFloat kInputBarWidth = 60;
 static const CGFloat kSelectionRectVerticalPadding = 30;
+static const NSTimeInterval kAnimationDuration = 0.15f;
 
 @interface NSString (PTASelection)
 - (NSString *)pta_stringByApplyingTransform:(PTASelectionTransform *)transform
@@ -120,7 +121,7 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
                   _keyboardFrame = [keyboardFrameValue CGRectValue];
                   NSNumber *durationValue = note.userInfo[UIKeyboardAnimationDurationUserInfoKey];
                   [self setNeedsLayout];
-                  [UIView animateWithDuration:(CGFloat)durationValue.doubleValue animations:^{
+                  [UIView animateWithDuration:(NSTimeInterval)durationValue.doubleValue animations:^{
                     [self layoutIfNeeded];
                   }];
                 }];
@@ -193,8 +194,6 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
     [self setNeedsLayout];
     [self layoutIfNeeded];
   }];
-  
-//  [self updateSelectionTransform:nil];
 }
 
 #pragma mark - UIView
@@ -388,6 +387,12 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
                NSStringFromRange(_viewModel.selectedCharacterRange));
       PTASelectionTransform *oldTransform = _selectionTransform;
       [self updateSelectionTransform:nil];
+      [UIView animateWithDuration:kAnimationDuration animations:^{
+        _selectionRectangle.frame = CGRectMake(0,
+                                               CGRectGetMinY(_selectionRectangle.frame),
+                                               CGRectGetWidth(_selectionRectangle.frame),
+                                               CGRectGetHeight(_selectionRectangle.frame));
+      }];
       [self.delegate documentView:self
                didMoveTextInRange:_viewModel.selectedCharacterRange
                        toLocation:oldTransform.insertionLocation];
