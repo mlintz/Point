@@ -166,11 +166,10 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
 
 - (void)setViewModel:(PTADocumentViewModel *)viewModel {
   NSParameterAssert(viewModel);
-  [_selectionRectPanRecognizer cancel];
   if ([_viewModel isEqual:viewModel]) {
     return;
   }
-
+  [_selectionRectPanRecognizer cancel];
   _viewModel = viewModel;
   if (![_viewModel.text isEqualToString:self.text]) {
     _textView.text = _viewModel.text;
@@ -295,8 +294,15 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
   _selectionTransform = selectionTransform;
   CGAffineTransform translation;
   if (_selectionTransform) {
-    translation = CGAffineTransformMakeTranslation(_selectionTransform.selectionViewTranslation.x,
-                                                   _selectionTransform.selectionViewTranslation.y);
+    CGFloat yTranslation;
+    CGFloat maxYTranslation;
+    CGFloat minYTranslation;
+    [self verticalTranslationLimitsOfView:_selectionRectangle
+                               inTextView:_textView
+                        outMinTranslation:&minYTranslation
+                        outMaxTranslation:&maxYTranslation];
+    yTranslation = MIN(MAX(_selectionTransform.selectionViewTranslation.y, minYTranslation), maxYTranslation);
+    translation = CGAffineTransformMakeTranslation(_selectionTransform.selectionViewTranslation.x, yTranslation);
     UITextPosition *locationBeginning = oldTransform
         ? [_textView positionFromPosition:_textView.beginningOfDocument offset:oldTransform.insertionLocation]
         : [_textView positionFromPosition:_textView.beginningOfDocument offset:_viewModel.selectedCharacterRange.location];
@@ -450,6 +456,22 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
                                                                      inTextContainer:textView.textContainer];
   return CGRectMake(0, CGRectGetMinY(boundingRectInContainer) + textView.textContainerInset.top,
                     CGRectGetWidth(textView.bounds), CGRectGetHeight(boundingRectInContainer));
+}
+
+- (void)verticalTranslationLimitsOfView:(UIView *)view
+                             inTextView:(UITextView *)textView
+                      outMinTranslation:(CGFloat *)outMinTranslation
+                      outMaxTranslation:(CGFloat *)outMaxTranslation {
+  CGRect textContentRect = [self fullWidthBoundingRectInTextView:textView
+                                                ofCharacterRange:NSMakeRange(0, textView.text.length)];
+  if (outMinTranslation != NULL) {
+    CGFloat viewMinY = view.center.y - CGRectGetHeight(view.bounds) / 2;
+    *outMinTranslation = CGRectGetMinY(textContentRect) - viewMinY;
+  }
+  if (outMaxTranslation != NULL) {
+    CGFloat viewMaxY = view.center.y + CGRectGetHeight(view.bounds) / 2;
+    *outMaxTranslation = CGRectGetMaxY(textContentRect) - viewMaxY;
+  }
 }
 
 @end
