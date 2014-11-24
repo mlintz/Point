@@ -364,6 +364,7 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
     }
     case UIGestureRecognizerStateEnded:
     case UIGestureRecognizerStateCancelled: {
+      _selectionManager = nil;
       NSAssert(!PTARangeEmptyOrNotFound(_viewModel.selectedCharacterRange),
                @"Ended reorder gesture with empty selection range: %@",
                NSStringFromRange(_viewModel.selectedCharacterRange));
