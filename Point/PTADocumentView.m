@@ -328,9 +328,17 @@ static const CGFloat kSelectionRectVerticalPadding = 30;
                                        range:NSMakeRange(oldInsertionLocation, _viewModel.selectedCharacterRange.length)];
     }
     translation = CGAffineTransformIdentity;
+    CGFloat yTranslation;
+    CGFloat maxYTranslation;
+    CGFloat minYTranslation;
+    [self verticalTranslationLimitsOfView:_selectionRectangle
+                               inTextView:_textView
+                        outMinTranslation:&minYTranslation
+                        outMaxTranslation:&maxYTranslation];
+    yTranslation = MIN(MAX(oldTransform.selectionViewTranslation.y, minYTranslation), maxYTranslation);
     _selectionRectangle.frame = CGRectOffset(_selectionRectangle.frame,
                                              oldTransform.selectionViewTranslation.x,
-                                             oldTransform.selectionViewTranslation.y);
+                                             yTranslation);
   }
   _selectionRectangle.transform = translation;
   _textView.contentOffset = contentOffset;
