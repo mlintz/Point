@@ -11,6 +11,8 @@
 #import "PTADocumentCollectionViewController.h"
 #import "UIView+Toast.h"
 
+static const NSTimeInterval kToastInterval = 1;
+
 @implementation PTAAppendTextSelectionViewController {
   PTAFilesystemManager *_manager;
   NSString *_appendText;
@@ -30,7 +32,11 @@
   self = [super init];
   if (self) {
     _manager = manager;
-    _appendText = [text copy];
+    if ([text pta_terminatesInNewline]) {
+      _appendText = [text copy];
+    } else {
+      _appendText = [NSString stringWithFormat:@"%@\n", text];
+    }
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop
                                                                                           target:self
                                                                                           action:@selector(didSelectClose:)];
@@ -65,9 +71,11 @@
 - (void)documentCollectionControllerDidSelectPath:(DBPath *)path {
   NSParameterAssert(path);
 
-  NSString *message = [NSString stringWithFormat:@"Added to %@", path.name];
+  NSString *message = [NSString stringWithFormat:@"Added \"%@\" to %@",
+                       [_appendText stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]],
+                        path.name];
   [self.navigationController.visibleViewController.view.window makeToast:message
-                                                                duration:0.5
+                                                                duration:kToastInterval
                                                                 position:CSToastPositionCenter];
 
   [_manager openFileForPath:path];
@@ -89,7 +97,7 @@
     message = [NSString stringWithFormat:@"Created %@", filename];
     [self.delegate appendTextControllerDidComplete:self withPath:file.info.path];
   }
-  [self.view.window makeToast:message duration:0.5 position:CSToastPositionCenter];
+  [self.view.window makeToast:message duration:kToastInterval position:CSToastPositionCenter];
 }
 
 - (void)didSelectNew:(id)sender {

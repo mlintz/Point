@@ -94,8 +94,8 @@
   [self updateView];
 }
 
-- (void)viewDidDisappear:(BOOL)animated {
-  [super viewDidDisappear:animated];
+- (void)viewWillDisappear:(BOOL)animated {
+  [super viewWillDisappear:animated];
   [_filesystemManager removeFileObserver:self forPath:_path];
   [_filesystemManager releaseFileForPath:_path];
 }
