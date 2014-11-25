@@ -16,6 +16,7 @@
 @property(nonatomic, readonly) NSRange selectedCharacterRange;  // Location set to NSNotFound to indicate no selection
 
 - (instancetype)initWithLoading:(BOOL)loading text:(NSString *)text selectedCharacterRange:(NSRange)range;
+- (BOOL)isEqualToViewModel:(PTADocumentViewModel *)viewModel;
 
 @end
 

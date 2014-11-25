@@ -79,11 +79,11 @@ static const NSTimeInterval kToastDuration = 0.5;
 
 - (void)handleClose:(id)sender {
   [self.view endEditing:YES];
-  [self.navigationController dismissViewControllerAnimated:self completion:nil];
+  [self.navigationController dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)handleCollectionViewClose:(id)sender {
-  [self.navigationController dismissViewControllerAnimated:self completion:nil];
+  [self.navigationController dismissViewControllerAnimated:YES completion:nil];
 }
 
 @end

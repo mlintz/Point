@@ -12,6 +12,7 @@ extern CGPoint PTAPointInvert(CGPoint point);
 extern CGPoint PTAPointAdd(CGPoint point1, CGPoint point2);
 extern BOOL PTARangeEmptyOrNotFound(NSRange range);
 extern NSUInteger PTARangeHash(NSRange range);
+extern BOOL PTAEqualBOOL(BOOL bool1, BOOL bool2);
 
 @interface UIGestureRecognizer (PTAUtil)
 

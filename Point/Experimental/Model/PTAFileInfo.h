@@ -14,4 +14,6 @@
 
 - (instancetype)initWithPath:(DBPath *)path modifiedTime:(NSDate *)modifiedTime;
 
+- (BOOL)isEqualToFileInfo:(PTAFileInfo *)fileInfo;
+
 @end

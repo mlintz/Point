@@ -33,8 +33,20 @@
   if (![object isKindOfClass:[PTAFileInfo class]]) {
     return NO;
   }
-  PTAFileInfo *other = object;
-  return [self.path.stringValue isEqual:other.path.stringValue];
+  return [self isEqualToFileInfo:(PTAFileInfo *)object];
+}
+
+- (BOOL)isEqualToFileInfo:(PTAFileInfo *)fileInfo {
+  if (self == fileInfo) {
+    return YES;
+  }
+  if (![self.path isEqual:fileInfo.path] && self.path != fileInfo.path) {
+    return NO;
+  }
+  if (![self.modifiedTime isEqualToDate:fileInfo.modifiedTime] && self.modifiedTime != fileInfo.modifiedTime) {
+    return NO;
+  }
+  return YES;
 }
 
 - (NSUInteger)hash {

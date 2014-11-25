@@ -64,14 +64,27 @@ static const NSTimeInterval kAnimationDuration = 0.15f;
   if (![object isKindOfClass:[self class]]) {
     return NO;
   }
-  PTADocumentViewModel *other = object;
-  return _isLoading == other.isLoading
-      && NSEqualRanges(_selectedCharacterRange, other.selectedCharacterRange)
-      && [_text isEqualToString:other.text];
+  return [self isEqualToViewModel:(PTADocumentViewModel *)object];
 }
 
 - (NSUInteger)hash {
   return (_isLoading ? 1 : 0) ^ [_text hash] ^ PTARangeHash(_selectedCharacterRange);
+}
+
+- (BOOL)isEqualToViewModel:(PTADocumentViewModel *)viewModel {
+  if (self == viewModel) {
+    return YES;
+  }
+  if (!PTAEqualBOOL(_isLoading, viewModel.isLoading)) {
+    return NO;
+  }
+  if (!NSEqualRanges(_selectedCharacterRange, viewModel.selectedCharacterRange)) {
+    return NO;
+  }
+  if (![_text isEqualToString:viewModel.text] && (_text != viewModel.text)) {
+    return NO;
+  }
+  return YES;
 }
 
 @end
@@ -167,7 +180,7 @@ static const NSTimeInterval kAnimationDuration = 0.15f;
 
 - (void)setViewModel:(PTADocumentViewModel *)viewModel {
   NSParameterAssert(viewModel);
-  if ([_viewModel isEqual:viewModel]) {
+  if ([_viewModel isEqualToViewModel:viewModel]) {
     return;
   }
   [_selectionRectPanRecognizer cancel];

@@ -208,7 +208,7 @@
     return NO;
   }
   NSAssert(NO, @"Unexpected error: %@", error.localizedDescription);
-  return nil;
+  return NO;
 }
 
 - (void)releaseFileForPath:(DBPath *)path {

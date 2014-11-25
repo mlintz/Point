@@ -73,16 +73,4 @@ static NSString *PTAEmojiForFile(PTAFile *file) {
   return self;
 }
 
-- (BOOL)isEqual:(id)object {
-  if (![object isKindOfClass:[PTAFile class]]) {
-    return NO;
-  }
-  PTAFile *other = object;
-  return [self.info isEqual:other.info];
-}
-
-- (NSUInteger)hash {
-  return [self.info hash];
-}
-
 @end

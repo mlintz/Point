@@ -24,6 +24,10 @@ NSUInteger PTARangeHash(NSRange range) {
   return range.location ^ range.length;
 }
 
+BOOL PTAEqualBOOL(BOOL bool1, BOOL bool2) {
+  return (bool1 && bool2) || (!bool1 && !bool2);
+}
+
 @implementation UIGestureRecognizer (PTAUtil)
 
 - (BOOL)pta_isActive {
