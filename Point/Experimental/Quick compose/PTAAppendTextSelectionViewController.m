@@ -8,6 +8,7 @@
 
 #import "PTAAppendTextSelectionViewController.h"
 
+#import "PTAAppendFileOperation.h"
 #import "PTADocumentCollectionViewController.h"
 #import "UIView+Toast.h"
 
@@ -74,8 +75,15 @@ static const NSTimeInterval kToastInterval = 1;
                                                                 duration:kToastInterval
                                                                 position:CSToastPositionCenter];
 
-  [_manager openFileForPath:path];
-  [_manager appendString:_appendText toFileAtPath:path];
+  PTAAppendFileOperation *operation = [PTAAppendFileOperation operationWithAppendText:_appendText];
+  PTAFile *file = [_manager openFileForPath:path];
+  NSAssert(!file.error, @"Error opening file, %@", file.error.localizedDescription);
+  NSAssert(file.cached, @"File isn't cached");
+  NSAssert(!file.hasNewerVersion, @"File has newer version");
+  NSAssert(file.isOpen, @"File isn't open");
+  file = [_manager writeString:[operation contentByApplyingOperationToContent:file.content]
+                  toFileAtPath:file.info.path];
+  NSAssert(!file.error, @"Error writing text to file, %@", file.error.localizedDescription);  
   [_manager releaseFileForPath:path];
   [self.delegate appendTextControllerDidComplete:self withPath:path];
 }
@@ -87,10 +95,13 @@ static const NSTimeInterval kToastInterval = 1;
     message = [NSString stringWithFormat:@"File %@ already exists", filename];
   } else {
     PTAFile *file = [_manager createFileWithName:filename];
-    NSString *initialText = [NSString stringWithFormat:@"// %@\n\n# Next tasks\n\n# Inbox\n - %@",
-                             [name capitalizedStringWithLocale:nil],
-                             _appendText];
-    [_manager writeString:initialText toFileAtPath:file.info.path];
+    NSString *initialContent = [NSString stringWithFormat:@"// %@\n\n# Next tasks\n\n# Inbox",
+                                                       [name capitalizedStringWithLocale:nil]];
+    PTAAppendFileOperation *operation = [PTAAppendFileOperation operationWithAppendText:_appendText];
+    
+    
+    [_manager writeString:[operation contentByApplyingOperationToContent:initialContent]
+             toFileAtPath:file.info.path];
     [_manager releaseFileForPath:file.info.path];
     message = [NSString stringWithFormat:@"Created %@", filename];
     [self.delegate appendTextControllerDidComplete:self withPath:file.info.path];

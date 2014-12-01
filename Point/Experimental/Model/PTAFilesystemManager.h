@@ -8,6 +8,7 @@
 
 @class PTAFile;
 @class PTADirectory;
+@protocol PTAFileOperation;
 
 @protocol PTAFileObserver <NSObject>
 - (void)fileDidChange:(PTAFile *)file;
@@ -52,5 +53,6 @@
 
 // Inbox file doesn't need to be opened to append
 - (void)appendTextToInboxFile:(NSString *)string;
+- (void)applyOperationToInboxFile:(id<PTAFileOperation>)operation;
 
 @end

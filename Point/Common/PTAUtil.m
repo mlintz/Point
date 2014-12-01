@@ -84,6 +84,22 @@ BOOL PTAEqualBOOL(BOOL bool1, BOOL bool2) {
   return [[NSCharacterSet newlineCharacterSet] characterIsMember:lastChar];
 }
 
+- (NSString *)pta_stringByTrimmingTerminatingCharactersInSet:(NSCharacterSet *)aSet {
+  NSParameterAssert(aSet);
+  if (self.length == 0) {
+    return self;
+  }
+  NSUInteger maxIndex = self.length - 1;
+  while (maxIndex > 0) {
+    unichar c = [self characterAtIndex:maxIndex];
+    if (![aSet characterIsMember:c]) {
+      return [self substringToIndex:maxIndex];
+    }
+    maxIndex--;
+  }
+  return @"";
+}
+
 @end
 
 @implementation UIView (PTAUtil)

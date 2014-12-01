@@ -30,6 +30,7 @@ extern BOOL PTAEqualBOOL(BOOL bool1, BOOL bool2);
 - (BOOL)containsNonWhitespaceCharacters;
 - (NSString *)pta_stringBySquashingWhitespace:(NSString *)replacementString;
 - (BOOL)pta_terminatesInNewline;
+- (NSString *)pta_stringByTrimmingTerminatingCharactersInSet:(NSCharacterSet *)aSet;
 @end
 
 @interface UIView (PTAUtil)
