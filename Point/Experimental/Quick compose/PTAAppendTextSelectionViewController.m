@@ -87,7 +87,9 @@ static const NSTimeInterval kToastInterval = 1;
     message = [NSString stringWithFormat:@"File %@ already exists", filename];
   } else {
     PTAFile *file = [_manager createFileWithName:filename];
-    NSString *initialText = [NSString stringWithFormat:@"// %@\n\n%@", [name capitalizedStringWithLocale:nil], _appendText];
+    NSString *initialText = [NSString stringWithFormat:@"// %@\n\n# Next tasks\n\n# Inbox\n - %@",
+                             [name capitalizedStringWithLocale:nil],
+                             _appendText];
     [_manager writeString:initialText toFileAtPath:file.info.path];
     [_manager releaseFileForPath:file.info.path];
     message = [NSString stringWithFormat:@"Created %@", filename];
