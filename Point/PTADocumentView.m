@@ -248,11 +248,6 @@ static const NSTimeInterval kAnimationDuration = 0.15f;
   }
 }
 
-- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
-  NSAssert(self.delegate, @"nil delegate");
-  return [self.delegate documentView:self shouldChangeTextInRange:range replacementText:text];
-}
-
 - (void)textViewDidBeginEditing:(UITextView *)textView {
   [self.delegate documentView:self didDragToHighlightCharacterRange:PTANullRange];
 }
@@ -298,14 +293,15 @@ static const NSTimeInterval kAnimationDuration = 0.15f;
 
 #pragma mark - Private
 
-// Passing nil applies the current selectionTransform to the textview and sets the selectionRectangle's
-// transform to identity
+// Passing nil applies the current selectionTransform to the textview and selection rectangle and
+// sets the selectionRectangle's transform to identity
 - (void)updateSelectionTransform:(PTASelectionTransform *)selectionTransform {
-  CGPoint contentOffset = _textView.contentOffset;
   PTASelectionTransform *oldTransform = _selectionTransform;
   _selectionTransform = selectionTransform;
-  CGAffineTransform translation;
+  [oldTransform unapplyToTextView:_textView];
+
   if (_selectionTransform) {
+    [_selectionTransform applyToTextView:_textView shouldApplyStyling:YES];
     CGFloat yTranslation;
     CGFloat maxYTranslation;
     CGFloat minYTranslation;
@@ -314,32 +310,13 @@ static const NSTimeInterval kAnimationDuration = 0.15f;
                         outMinTranslation:&minYTranslation
                         outMaxTranslation:&maxYTranslation];
     yTranslation = MIN(MAX(_selectionTransform.selectionViewTranslation.y, minYTranslation), maxYTranslation);
-    translation = CGAffineTransformMakeTranslation(_selectionTransform.selectionViewTranslation.x, yTranslation);
-    UITextPosition *locationBeginning = oldTransform
-        ? [_textView positionFromPosition:_textView.beginningOfDocument offset:oldTransform.insertionLocation]
-        : [_textView positionFromPosition:_textView.beginningOfDocument offset:_viewModel.selectedCharacterRange.location];
-    UITextPosition *locationEnd = [_textView positionFromPosition:locationBeginning offset:_viewModel.selectedCharacterRange.length];
-    UITextRange *textRange = [_textView textRangeFromPosition:locationBeginning toPosition:locationEnd];
-    NSString *selectedText = [_textView textInRange:textRange];
-    [_textView replaceRange:textRange withText:@""];
-
-    UITextPosition *insertionLocation = [_textView positionFromPosition:_textView.beginningOfDocument
-                                                                 offset:_selectionTransform.insertionLocation];
-    UITextRange *insertionRange = [_textView textRangeFromPosition:insertionLocation toPosition:insertionLocation];
-    [_textView replaceRange:insertionRange withText:selectedText];
-
-    [_textView.textStorage addAttribute:NSForegroundColorAttributeName
-                                  value:[UIColor lightGrayColor]
-                                  range:NSMakeRange(_selectionTransform.insertionLocation, _viewModel.selectedCharacterRange.length)];
-
+    _selectionRectangle.transform =
+        CGAffineTransformMakeTranslation(_selectionTransform.selectionViewTranslation.x, yTranslation);
   } else {
-    if (oldTransform){
-      NSUInteger oldInsertionLocation =
-          oldTransform ? oldTransform.insertionLocation : _viewModel.selectedCharacterRange.location;
-      [_textView.textStorage removeAttribute:NSForegroundColorAttributeName
-                                       range:NSMakeRange(oldInsertionLocation, _viewModel.selectedCharacterRange.length)];
-    }
-    translation = CGAffineTransformIdentity;
+    // If new selectionTransform is nil, re-position the selection text without styling and update
+    // the selectionRectangle's frame with it's translation.
+    [oldTransform applyToTextView:_textView shouldApplyStyling:NO];
+
     CGFloat yTranslation;
     CGFloat maxYTranslation;
     CGFloat minYTranslation;
@@ -351,9 +328,8 @@ static const NSTimeInterval kAnimationDuration = 0.15f;
     _selectionRectangle.frame = CGRectOffset(_selectionRectangle.frame,
                                              oldTransform.selectionViewTranslation.x,
                                              yTranslation);
+    _selectionRectangle.transform = CGAffineTransformIdentity;
   }
-  _selectionRectangle.transform = translation;
-  _textView.contentOffset = contentOffset;
 }
 
 - (void)handleSelectionBarPan:(UIPanGestureRecognizer *)panRecognizer {
@@ -380,9 +356,11 @@ static const NSTimeInterval kAnimationDuration = 0.15f;
       NSAssert(!PTARangeEmptyOrNotFound(_viewModel.selectedCharacterRange), @"Empty selectedCharacterRange");
       NSArray *paragraphsArray = [self paragraphsArrayForTextView:_textView
                                           excludingCharacterRange:_viewModel.selectedCharacterRange];
-      _selectionManager = [[PTASelectionManager alloc] initWithSelectionRect:_selectionRectangle.frame
-                                                              selectionRange:_viewModel.selectedCharacterRange
-                                                                  paragraphs:paragraphsArray];
+      NSString *selectedText = [_textView.text substringWithRange:_viewModel.selectedCharacterRange];
+      _selectionManager = [[PTASelectionManager alloc] initWithParagraphs:paragraphsArray
+                                                            selectionText:selectedText
+                                                             selectionTop:CGRectGetMinY(_selectionRectangle.frame)
+                                                        selectionLocation:_viewModel.selectedCharacterRange.location];
       PTASelectionTransform *initialTransform = [_selectionManager transformForTranslation:CGPointZero];
       [self updateSelectionTransform:initialTransform];
       break;
@@ -394,12 +372,13 @@ static const NSTimeInterval kAnimationDuration = 0.15f;
       break;
     }
     case UIGestureRecognizerStateEnded: {
-      _selectionManager = nil;
       NSAssert(!PTARangeEmptyOrNotFound(_viewModel.selectedCharacterRange),
                @"Ended reorder gesture with empty selection range: %@",
                NSStringFromRange(_viewModel.selectedCharacterRange));
-      PTASelectionTransform *oldTransform = _selectionTransform;
+      NSUInteger insertionLocation = _selectionTransform.insertionLocation;
+      NSString *insertionText = _selectionTransform.insertionText;
       [self updateSelectionTransform:nil];
+      _selectionManager = nil;
       [UIView animateWithDuration:kAnimationDuration animations:^{
         _selectionRectangle.frame = CGRectMake(0,
                                                CGRectGetMinY(_selectionRectangle.frame),
@@ -407,8 +386,9 @@ static const NSTimeInterval kAnimationDuration = 0.15f;
                                                CGRectGetHeight(_selectionRectangle.frame));
       }];
       [self.delegate documentView:self
-               didMoveTextInRange:_viewModel.selectedCharacterRange
-                       toLocation:oldTransform.insertionLocation];
+                     removedRange:_viewModel.selectedCharacterRange
+                  andInsertedText:insertionText
+                       inLocation:insertionLocation];
       break;
     }
     case UIGestureRecognizerStateCancelled: {

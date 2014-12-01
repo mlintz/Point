@@ -32,11 +32,7 @@ static const NSTimeInterval kToastInterval = 1;
   self = [super init];
   if (self) {
     _manager = manager;
-    if ([text pta_terminatesInNewline]) {
-      _appendText = [text copy];
-    } else {
-      _appendText = [NSString stringWithFormat:@"%@\n", text];
-    }
+    _appendText = [text copy];
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop
                                                                                           target:self
                                                                                           action:@selector(didSelectClose:)];
@@ -91,7 +87,7 @@ static const NSTimeInterval kToastInterval = 1;
     message = [NSString stringWithFormat:@"File %@ already exists", filename];
   } else {
     PTAFile *file = [_manager createFileWithName:filename];
-    NSString *initialText = [NSString stringWithFormat:@"// %@\n\n%@\n", [name capitalizedStringWithLocale:nil], _appendText];
+    NSString *initialText = [NSString stringWithFormat:@"// %@\n\n%@", [name capitalizedStringWithLocale:nil], _appendText];
     [_manager writeString:initialText toFileAtPath:file.info.path];
     [_manager releaseFileForPath:file.info.path];
     message = [NSString stringWithFormat:@"Created %@", filename];

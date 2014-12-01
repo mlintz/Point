@@ -136,28 +136,20 @@
 }
 
 - (void)documentView:(PTADocumentView *)documentView
-    didMoveTextInRange:(NSRange)range
-            toLocation:(NSUInteger)location {
-  NSString *selectedText = [_file.content substringWithRange:range];
+        removedRange:(NSRange)range
+     andInsertedText:(NSString *)newText
+          inLocation:(NSUInteger)location {
+  NSParameterAssert(!PTARangeEmptyOrNotFound(range));
   NSString *textWithSelectedTextRemoved = [_file.content stringByReplacingCharactersInRange:range
                                                                                  withString:@""];
-  NSString *newText = [textWithSelectedTextRemoved stringByReplacingCharactersInRange:NSMakeRange(location, 0)
-                                                                           withString:selectedText];
+  NSString *newContent = [textWithSelectedTextRemoved stringByReplacingCharactersInRange:NSMakeRange(location, 0)
+                                                                              withString:newText];
 
-  _file = [_filesystemManager writeString:newText toFileAtPath:_path];
+  _file = [_filesystemManager writeString:newContent toFileAtPath:_path];
   NSAssert(!_file.error, @"Error writing text to file: %@", _file.error.localizedDescription);
 
-  if (!PTARangeEmptyOrNotFound(_selectedCharacterRange)) {
-    _selectedCharacterRange = NSMakeRange(location, _selectedCharacterRange.length);
-  }
+  _selectedCharacterRange = PTANullRange;
   [self updateView];
-}
-
-- (BOOL)documentView:(PTADocumentView *)document
-    shouldChangeTextInRange:(NSRange)range
-            replacementText:(NSString *)text {
-  NSString *updatedText = [document.text stringByReplacingCharactersInRange:range withString:text];
-  return [updatedText pta_terminatesInNewline];
 }
 
 #pragma mark - PTAAppendTextSelectionDelegate
@@ -236,9 +228,6 @@
     showLoading = YES;
   } else {
     text = _file.content;
-    if (![text pta_terminatesInNewline]) {
-      text = [NSString stringWithFormat:@"%@\n", text];
-    }
   }
 
   BOOL animateRightBarButtom = (self.navigationItem.rightBarButtonItem != nil);

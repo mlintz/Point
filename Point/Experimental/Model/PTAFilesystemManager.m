@@ -231,7 +231,6 @@
 }
 
 - (PTAFile *)appendString:(NSString *)string toFileAtPath:(DBPath *)path {
-  string = [NSString stringWithFormat:@"\n%@", string];
   DBFile *file = [self performFileOperation:^BOOL(DBFile *file, DBError *__autoreleasing *error) {
     NSAssert(!file.newerStatus, @"Attempting to append string to file when newer version is available.");
     return [file appendString:string error:error];

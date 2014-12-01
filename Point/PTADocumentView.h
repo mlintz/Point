@@ -28,11 +28,9 @@
 
 // Location is relative to text with range removed.
 - (void)documentView:(PTADocumentView *)documentView
-    didMoveTextInRange:(NSRange)range
-            toLocation:(NSUInteger)location;
-- (BOOL)documentView:(PTADocumentView *)document
-    shouldChangeTextInRange:(NSRange)range
-            replacementText:(NSString *)text;
+        removedRange:(NSRange)range
+     andInsertedText:(NSString *)newText
+          inLocation:(NSUInteger)location;
 
 @end
 
