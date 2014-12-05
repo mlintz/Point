@@ -8,7 +8,7 @@
 
 #import "PTAAppendFileOperation.h"
 
-static NSString *kAppendFormat = @"\n - %@";
+static NSString *kAppendPrefix = @" - ";
 
 @implementation PTAAppendFileOperation {
   NSString *_appendText;
@@ -19,7 +19,7 @@ static NSString *kAppendFormat = @"\n - %@";
   NSParameterAssert(appendText.length);
   PTAAppendFileOperation *operation = [[self alloc] init];
   if (operation) {
-    operation->_appendText = [[self formattedString:appendText] copy];
+    operation->_appendText = [[self formattedAppendString:appendText] copy];
   }
   return operation;
 }
@@ -31,10 +31,16 @@ static NSString *kAppendFormat = @"\n - %@";
   return [trimmedContent stringByAppendingString:_appendText];
 }
 
-+ (NSString *)formattedString:(NSString *)string {
-  NSString *trimmedString =
-      [string stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-  return [NSString stringWithFormat:kAppendFormat, trimmedString];
++ (NSString *)formattedAppendString:(NSString *)string {
+  NSString *appendPrefixTrimmedString = string;
+  while ([appendPrefixTrimmedString hasPrefix:kAppendPrefix]) {
+    appendPrefixTrimmedString = appendPrefixTrimmedString.length > kAppendPrefix.length
+        ? [appendPrefixTrimmedString substringFromIndex:[kAppendPrefix length]]
+        : @"";
+  }
+  NSString *newlineTrimmedString =
+      [appendPrefixTrimmedString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+  return [NSString stringWithFormat:@"\n%@%@", kAppendPrefix, newlineTrimmedString];
 }
 
 @end
