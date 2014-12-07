@@ -16,10 +16,9 @@
 @property(nonatomic, readonly) BOOL cached;
 @property(nonatomic, readonly) DBFileState state;
 @property(nonatomic, readonly) float progress;
-@property(nonatomic, readonly) DBError *error;
 @property(nonatomic, readonly) BOOL hasNewerVersion;
-
 @property(nonatomic, readonly) NSString *content;
+
 @property(nonatomic, readonly) NSString *nameWithEmojiStatus;
 
 - (instancetype)initWithFile:(DBFile *)file content:(NSString *)content;

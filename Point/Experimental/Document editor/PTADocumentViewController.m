@@ -22,7 +22,6 @@
   PTAFile *_file;
   PTAFilesystemManager *_filesystemManager;
   UIAlertController *_newVersionAlertController;
-  UIAlertController *_errorAlertController;
   NSRange _selectedCharacterRange;
   
   UIBarButtonItem *_composeBarButton;
@@ -51,22 +50,9 @@
     self.navigationItem.title = _path.name;
     self.navigationItem.rightBarButtonItem = _composeBarButton;
 
-    __weak id weakSelf = self;
-    UIAlertAction *action;
-    action = [UIAlertAction actionWithTitle:@"OK"
-                                      style:UIAlertActionStyleCancel
-                                    handler:^(UIAlertAction *action) {
-      [[weakSelf navigationController] popViewControllerAnimated:YES];
-    }];
-    NSString *message = [NSString stringWithFormat:@"File error: %@", _file.error.localizedDescription];
-    _errorAlertController = [UIAlertController alertControllerWithTitle:@"Error"
-                                                                message:message
-                                                         preferredStyle:UIAlertControllerStyleAlert];
-    [_errorAlertController addAction:action];
-
-    action = [UIAlertAction actionWithTitle:@"Update"
-                                      style:UIAlertActionStyleCancel
-                                    handler:^(UIAlertAction *action) {
+    UIAlertAction *action = [UIAlertAction actionWithTitle:@"Update"
+                                                     style:UIAlertActionStyleCancel
+                                                   handler:^(UIAlertAction *action) {
       [manager updateFileForPath:path];
     }];
     _newVersionAlertController = [UIAlertController alertControllerWithTitle:@"Alert"
@@ -90,7 +76,6 @@
   [super viewDidAppear:animated];
   [_filesystemManager addFileObserver:self forPath:_path];
   _file = [_filesystemManager openFileForPath:_path];
-  NSAssert(!_file.error, @"Error opening file: %@", _file.error);
   [self updateView];
 }
 
@@ -112,7 +97,6 @@
 
 - (void)documentView:(PTADocumentView *)documentView didChangeText:(NSString *)text {
   _file = [_filesystemManager writeString:text toFileAtPath:_path];
-  NSAssert(!_file.error, @"Error writing to file: %@", _file.error);
   _selectedCharacterRange = PTANullRange;
   [self updateView];
 }
@@ -146,8 +130,6 @@
                                                                               withString:newText];
 
   _file = [_filesystemManager writeString:newContent toFileAtPath:_path];
-  NSAssert(!_file.error, @"Error writing text to file: %@", _file.error.localizedDescription);
-
   _selectedCharacterRange = PTANullRange;
   [self updateView];
 }
@@ -172,7 +154,6 @@
   // Remove text from existing file
   [_filesystemManager openFileForPath:_file.info.path];  // Re-open file in case file was closed in viewDidDisappear.
   _file = [_filesystemManager writeString:remainderText toFileAtPath:_file.info.path];
-  NSAssert(!_file.error, @"Error writing text (%@) to file: %@", remainderText, _file.error);
   [_filesystemManager releaseFileForPath:_file.info.path];
 
   [self updateView];
@@ -216,12 +197,9 @@
   NSString *text;
   BOOL showLoading = NO;
   BOOL isNewVersionAlertVisible = NO;
-  BOOL isErrorAlertVisible = NO;
 
   if (!_file) {
     // Everything is hidden
-  } else if (_file.error) {
-    isErrorAlertVisible = YES;
   } else if (_file.hasNewerVersion) {
     isNewVersionAlertVisible = YES;
   } else if (!_file.isOpen || !_file.cached) {
@@ -245,12 +223,6 @@
     [self dismissViewControllerAnimated:YES completion:nil];
   }
   
-  if (isErrorAlertVisible && ![_errorAlertController pta_isActive]) {
-    [self presentViewController:_errorAlertController animated:YES completion:nil];
-  } else if (!isErrorAlertVisible && [_errorAlertController pta_isActive]) {
-    [self dismissViewControllerAnimated:YES completion:nil];
-  }
-
   PTADocumentViewModel *vm = [[PTADocumentViewModel alloc] initWithLoading:showLoading
                                                                       text:text
                                                     selectedCharacterRange:_selectedCharacterRange];

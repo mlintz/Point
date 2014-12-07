@@ -11,9 +11,6 @@
 #import "PTAFileInfo.h"
 
 static NSString *PTAEmojiForFile(PTAFile *file) {
-  if (file.error) {
-    return @"‼️";
-  }
   if (!file.isOpen) {
     return @"🔒";
   }
@@ -57,7 +54,6 @@ static NSString *PTAEmojiForFile(PTAFile *file) {
     _isOpen = file.open;
     _cached = file.status.cached;
     _state = file.status.state;
-    _error = file.status.error;
     _hasNewerVersion = (file.newerStatus != nil);
     _content = [content copy];
     _progress = file.status.progress;

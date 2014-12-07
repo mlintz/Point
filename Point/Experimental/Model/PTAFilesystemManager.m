@@ -245,6 +245,21 @@
   } forPath:path];
 }
 
+- (void)appendTextToInboxFile:(NSString *)text {
+  [self openFileForPath:_inboxFilePath];
+  [self appendString:text toFileAtPath:_inboxFilePath];
+  [self releaseFileForPath:_inboxFilePath];
+}
+
+- (void)applyOperationToInboxFile:(id<PTAFileOperation>)operation {
+  NSParameterAssert(operation);
+  PTAFile *inboxFile = [self openFileForPath:_inboxFilePath];
+  NSString *fileContent = inboxFile.content;
+  NSAssert(fileContent.length > 0, @"Failsafe against reading empty contents from improperly opened file.");
+  NSString *newContent = [operation contentByApplyingOperationToContent:fileContent];
+  inboxFile = [self writeString:newContent toFileAtPath:inboxFile.info.path];
+}
+
 #pragma mark - Private
 
 - (DBFile *)performFileOperation:(BOOL (^)(DBFile *file, DBError **error))operation
@@ -316,24 +331,6 @@
   for (id<PTAFileObserver> observer in fileObservers.objectEnumerator) {
     [observer fileDidChange:ptafile];
   }
-}
-
-- (void)appendTextToInboxFile:(NSString *)text {
-  [self openFileForPath:_inboxFilePath];
-  [self appendString:text toFileAtPath:_inboxFilePath];
-  [self releaseFileForPath:_inboxFilePath];
-}
-
-- (void)applyOperationToInboxFile:(id<PTAFileOperation>)operation {
-  NSParameterAssert(operation);
-  PTAFile *inboxFile = [self openFileForPath:_inboxFilePath];
-  NSAssert(!inboxFile.error && inboxFile.isOpen && inboxFile.cached && !inboxFile.hasNewerVersion,
-           @"Error opening inbox file");
-  NSString *fileContent = inboxFile.content;
-  NSAssert(fileContent.length > 0, @"Failsafe against reading empty contents from improperly opened file.");
-  NSString *newContent = [operation contentByApplyingOperationToContent:fileContent];
-  inboxFile = [self writeString:newContent toFileAtPath:inboxFile.info.path];
-  NSAssert(!inboxFile.error, @"Error writing to inbox file: %@", inboxFile.error);
 }
 
 - (void)initializeRetainEntryAndBeginObservingFile:(DBFile *)file {

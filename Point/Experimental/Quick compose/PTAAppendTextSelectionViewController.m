@@ -77,13 +77,11 @@ static const NSTimeInterval kToastInterval = 1;
 
   PTAAppendFileOperation *operation = [PTAAppendFileOperation operationWithAppendText:_appendText];
   PTAFile *file = [_manager openFileForPath:path];
-  NSAssert(!file.error, @"Error opening file, %@", file.error.localizedDescription);
   NSAssert(file.cached, @"File isn't cached");
   NSAssert(!file.hasNewerVersion, @"File has newer version");
   NSAssert(file.isOpen, @"File isn't open");
   file = [_manager writeString:[operation contentByApplyingOperationToContent:file.content]
                   toFileAtPath:file.info.path];
-  NSAssert(!file.error, @"Error writing text to file, %@", file.error.localizedDescription);  
   [_manager releaseFileForPath:path];
   [self.delegate appendTextControllerDidComplete:self withPath:path];
 }
