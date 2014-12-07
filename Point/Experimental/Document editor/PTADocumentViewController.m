@@ -75,14 +75,13 @@
 - (void)viewDidAppear:(BOOL)animated {
   [super viewDidAppear:animated];
   [_filesystemManager addFileObserver:self forPath:_path];
-  _file = [_filesystemManager openFileForPath:_path];
+  _file = [_filesystemManager fileForPath:_path];
   [self updateView];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
   [super viewWillDisappear:animated];
   [_filesystemManager removeFileObserver:self forPath:_path];
-  [_filesystemManager releaseFileForPath:_path];
 }
 
 #pragma mark - PTAFileObserver
@@ -152,9 +151,7 @@
                                                                         withString:@""];
 
   // Remove text from existing file
-  [_filesystemManager openFileForPath:_file.info.path];  // Re-open file in case file was closed in viewDidDisappear.
   _file = [_filesystemManager writeString:remainderText toFileAtPath:_file.info.path];
-  [_filesystemManager releaseFileForPath:_file.info.path];
 
   [self updateView];
 }

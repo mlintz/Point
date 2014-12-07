@@ -102,6 +102,19 @@ BOOL PTAEqualBOOL(BOOL bool1, BOOL bool2) {
 
 @end
 
+@implementation NSArray (PTAUtil)
+
+- (NSArray *)pta_arrayWithMap:(id (^)(id))map {
+  NSParameterAssert(map);
+  NSMutableArray *outArray = [NSMutableArray arrayWithCapacity:self.count];
+  for (id obj in self) {
+    [outArray addObject:map(obj)];
+  }
+  return outArray;
+}
+
+@end
+
 @implementation UIView (PTAUtil)
 
 - (UIImage *)snapshotCroppedToRect:(CGRect)rect {

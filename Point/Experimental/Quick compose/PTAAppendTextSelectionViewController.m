@@ -76,13 +76,12 @@ static const NSTimeInterval kToastInterval = 1;
                                                                 position:CSToastPositionCenter];
 
   PTAAppendFileOperation *operation = [PTAAppendFileOperation operationWithAppendText:_appendText];
-  PTAFile *file = [_manager openFileForPath:path];
+  PTAFile *file = [_manager fileForPath:path];
   NSAssert(file.cached, @"File isn't cached");
   NSAssert(!file.hasNewerVersion, @"File has newer version");
   NSAssert(file.isOpen, @"File isn't open");
   file = [_manager writeString:[operation contentByApplyingOperationToContent:file.content]
                   toFileAtPath:file.info.path];
-  [_manager releaseFileForPath:path];
   [self.delegate appendTextControllerDidComplete:self withPath:path];
 }
 
@@ -100,7 +99,6 @@ static const NSTimeInterval kToastInterval = 1;
     
     [_manager writeString:[operation contentByApplyingOperationToContent:initialContent]
              toFileAtPath:file.info.path];
-    [_manager releaseFileForPath:file.info.path];
     message = [NSString stringWithFormat:@"Created %@", filename];
     [self.delegate appendTextControllerDidComplete:self withPath:file.info.path];
   }

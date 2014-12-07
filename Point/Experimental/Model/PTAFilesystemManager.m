@@ -23,33 +23,6 @@
 
 @end
 
-@interface PTAFileRetainEntry : NSObject
-
-@property(nonatomic, readonly) DBFile *file;
-@property(nonatomic, assign) NSInteger count;  // default 1
-
-- (instancetype)initWithFile:(DBFile *)file;
-
-@end
-
-@implementation PTAFileRetainEntry
-
-- (instancetype)init {
-  [self doesNotRecognizeSelector:_cmd];
-  return nil;
-}
-
-- (instancetype)initWithFile:(DBFile *)file {
-  self = [super init];
-  if (self) {
-    _file = file;
-    _count = 1;
-  }
-  return self;
-}
-
-@end
-
 @implementation PTAFilesystemManager {
   DBFilesystem *_filesystem;
   DBPath *_rootPath;
@@ -57,8 +30,8 @@
 
   NSMutableDictionary *_fileObservers;  // DBPath -> NSHashTable<PTAFileObserver>
   NSHashTable *_directoryObservers;  // PTADirectoryObserver
-  NSMutableDictionary *_filesMap;  // DBPath -> PTAFileRetainEntry
 
+  NSMutableDictionary *_openFileMap;  // DBPath -> DBFile
   NSMutableSet *_pathsNeedingDispatch;
   BOOL _filesystemNeedsDispatch;
 }
@@ -79,14 +52,35 @@
     _rootPath = rootPath;
     _filesystem = accountManager.linkedAccount
         ? [[DBFilesystem alloc] initWithAccount:accountManager.linkedAccount] : nil;
+    _openFileMap = [NSMutableDictionary dictionary];
+
     __weak id weakSelf = self;
     __weak id weakAccountManager = accountManager;
-    void(^filesystemChangeCallback)() = ^void() {
+    
+    void(^fileChangeCallback)(PTAFilesystemManager *filesystemManager, DBFile *file) =
+        ^(PTAFilesystemManager *filesystemManager, DBFile *file) {
+          NSParameterAssert(filesystemManager);
+          NSParameterAssert(file);
+          [filesystemManager->_pathsNeedingDispatch addObject:file.info.path];
+          dispatch_async(dispatch_get_main_queue(), ^{
+            if ([filesystemManager->_pathsNeedingDispatch containsObject:file.info.path]) {
+              [filesystemManager->_pathsNeedingDispatch removeObject:file.info.path];
+              [filesystemManager publishFileChanged:file];
+            }
+          });
+        };
+    
+    void(^filesystemChangeCallback)() = ^ {
       PTAFilesystemManager *strongSelf = weakSelf;
       if (!strongSelf) {
         return;
       }
       strongSelf->_filesystemNeedsDispatch = YES;
+      [strongSelf.class openNewFilesInFilesystem:strongSelf->_filesystem
+                                        rootPath:strongSelf->_rootPath
+                                   updateFileMap:strongSelf->_openFileMap
+                                     addObserver:strongSelf
+                                           block:fileChangeCallback];
       dispatch_async(dispatch_get_main_queue(), ^{
         if (!strongSelf->_filesystemNeedsDispatch) {
           return;
@@ -109,22 +103,31 @@
       [strongSelf->_filesystem addObserver:self
                         forPathAndChildren:strongSelf->_rootPath
                                      block:filesystemChangeCallback];
+      [strongSelf.class openNewFilesInFilesystem:strongSelf->_filesystem
+                                        rootPath:strongSelf->_rootPath
+                                   updateFileMap:strongSelf->_openFileMap
+                                     addObserver:strongSelf
+                                           block:fileChangeCallback];
       [strongSelf publishDirectoryChanged];
     }];
     _inboxFilePath = inboxFilePath;
     _fileObservers = [NSMutableDictionary dictionary];
     _directoryObservers = [NSHashTable weakObjectsHashTable];
     _pathsNeedingDispatch = [NSMutableSet set];
-    _filesMap = [NSMutableDictionary dictionary];
     
     [_filesystem addObserver:self block:filesystemChangeCallback];
     [_filesystem addObserver:self forPathAndChildren:_rootPath block:filesystemChangeCallback];
+    [self.class openNewFilesInFilesystem:_filesystem
+                                rootPath:_rootPath
+                           updateFileMap:_openFileMap
+                             addObserver:self
+                                   block:fileChangeCallback];
   }
   return self;
 }
 
 - (PTADirectory *)directory {
-  return [self createDirectory];
+  return [self.class createDirectoryFromFilesystem:_filesystem rootPath:_rootPath];
 }
 
 - (void)addDirectoryObserver:(id<PTADirectoryObserver>)observer {
@@ -166,23 +169,16 @@
   }
 }
 
-- (PTAFile *)openFileForPath:(DBPath *)path {
+- (PTAFile *)fileForPath:(DBPath *)path {
   NSParameterAssert(path);
   NSAssert(_filesystem, @"Can't open path %@ with nil filesystem", path);
-  if (_filesMap[path] != nil) {
-    PTAFileRetainEntry *entry = _filesMap[path];
-    entry.count++;
-    return [self createFile:entry.file];
-  }
-  DBError *error;
-  DBFile *file = [_filesystem openFile:path error:&error];
-  if (error || !file) {
-    NSAssert([error code] == DBErrorParamsNotFound, @"Received non DBErrorParamsNotFound error: %@", error.localizedDescription);
+  DBFile *file = _openFileMap[path];
+  if (!file) {
+    DBError *error;
     file = [_filesystem createFile:path error:&error];
     NSAssert(!error, @"Error creating file, %@", file);
   }
-  [self initializeRetainEntryAndBeginObservingFile:file];
-  return [self createFile:file];
+  return [self.class createFile:file];
 }
 
 - (PTAFile *)createFileWithName:(NSString *)name {
@@ -193,34 +189,12 @@
   DBPath *path = [_rootPath childPath:name];
   DBFile *file = [_filesystem createFile:path error:&error];
   NSAssert(!error && file, @"Error creating file: %@", error.localizedDescription);
-  [self initializeRetainEntryAndBeginObservingFile:file];
-  return [self createFile:file];
+  return [self.class createFile:file];
 }
 
 - (BOOL)containsFileWithName:(NSString *)name {
-  DBError *error;
   DBPath *path = [_rootPath childPath:name];
-  DBFileInfo *fileInfo = [_filesystem fileInfoForPath:path error:&error];
-
-  if (!error && fileInfo) {
-    return YES;
-  }
-  if ([error code] == DBErrorParamsNotFound) {
-    return NO;
-  }
-  NSAssert(NO, @"Unexpected error: %@", error.localizedDescription);
-  return NO;
-}
-
-- (void)releaseFileForPath:(DBPath *)path {
-  PTAFileRetainEntry *entry = _filesMap[path];
-  NSAssert(entry.count > 0, @"Must have non-zero entry count. Entry: (%@)", entry);
-  entry.count--;
-  if (!entry.count) {
-    [entry.file close];
-    [entry.file removeObserver:self];
-    [_filesMap removeObjectForKey:path];
-  }
+  return _openFileMap[path] != nil;
 }
 
 - (PTAFile *)writeString:(NSString *)string toFileAtPath:(DBPath *)path {
@@ -228,7 +202,7 @@
     NSAssert(!file.newerStatus, @"Attempting to write string to file when newer version is available.");
     return [file writeString:string error:error];
   } forPath:path];
-  return [self createFile:file];
+  return [self.class createFile:file];
 }
 
 - (PTAFile *)appendString:(NSString *)string toFileAtPath:(DBPath *)path {
@@ -236,7 +210,7 @@
     NSAssert(!file.newerStatus, @"Attempting to append string to file when newer version is available.");
     return [file appendString:string error:error];
   } forPath:path];
-  return [self createFile:file];
+  return [self.class createFile:file];
 }
 
 - (void)updateFileForPath:(DBPath *)path {
@@ -246,27 +220,68 @@
 }
 
 - (void)appendTextToInboxFile:(NSString *)text {
-  [self openFileForPath:_inboxFilePath];
   [self appendString:text toFileAtPath:_inboxFilePath];
-  [self releaseFileForPath:_inboxFilePath];
 }
 
 - (void)applyOperationToInboxFile:(id<PTAFileOperation>)operation {
   NSParameterAssert(operation);
-  PTAFile *inboxFile = [self openFileForPath:_inboxFilePath];
+  PTAFile *inboxFile = [self fileForPath:_inboxFilePath];
   NSString *fileContent = inboxFile.content;
   NSAssert(fileContent.length > 0, @"Failsafe against reading empty contents from improperly opened file.");
   NSString *newContent = [operation contentByApplyingOperationToContent:fileContent];
-  inboxFile = [self writeString:newContent toFileAtPath:inboxFile.info.path];
+  [self writeString:newContent toFileAtPath:inboxFile.info.path];
 }
 
 #pragma mark - Private
 
++ (void)openNewFilesInFilesystem:(DBFilesystem *)filesystem
+                        rootPath:(DBPath *)rootPath
+                   updateFileMap:(NSMutableDictionary *)fileMap  // DBPath -> DBFile
+                     addObserver:(PTAFilesystemManager *)observer
+                           block:(void (^)(PTAFilesystemManager *filesystemManager, DBFile *file))observerBlock {
+  PTADirectory *newDirectory = [self createDirectoryFromFilesystem:filesystem rootPath:rootPath];
+
+  // All sets are DBPath
+  NSSet *oldPaths = [NSSet setWithArray:fileMap.allKeys];
+  NSSet *currentPaths = [NSSet setWithArray:[newDirectory.fileInfos pta_arrayWithMap:^DBPath *(PTAFileInfo *fileInfo) {
+    return fileInfo.path;
+  }]];
+
+  NSMutableSet *addedPaths = [currentPaths mutableCopy];
+  [addedPaths minusSet:oldPaths];
+  
+  NSMutableSet *removedPaths = [oldPaths mutableCopy];
+  [removedPaths minusSet:currentPaths];
+
+  DBError *error;
+  for (DBPath *path in addedPaths) {
+    DBFile *file = [filesystem openFile:path error:&error];
+    NSAssert(!error, @"%@", error.localizedDescription);
+    fileMap[path] = file;
+    __weak id weakFile = file;
+    __weak id weakManager = observer;
+    [file addObserver:observer block:^{
+      PTAFilesystemManager *strongSelf = weakManager;
+      DBFile *strongFile = weakFile;
+      if (strongSelf && strongFile) {
+        observerBlock(strongSelf, strongFile);
+      }
+    }];
+  }
+
+  for (DBPath *path in removedPaths) {
+    DBFile *file = fileMap[path];
+    [file close];
+    [fileMap removeObjectForKey:path];
+    [file removeObserver:observer];
+  }
+}
+
 - (DBFile *)performFileOperation:(BOOL (^)(DBFile *file, DBError **error))operation
-                     forPath:(DBPath *)path {
+                         forPath:(DBPath *)path {
   NSParameterAssert(path);
-  DBFile *file = [_filesMap[path] file];
-  NSAssert(file, @"No open file at path %@. Paths: %@", path, _filesMap.allKeys);
+  DBFile *file = _openFileMap[path];
+  NSAssert(file, @"No open file at path %@. Paths: %@", path, _openFileMap.allKeys);
   NSAssert(file.open, @"File must be open to write to it.");
   DBError *error;
   BOOL success = operation(file, &error);
@@ -282,12 +297,13 @@
   return file;
 }
 
-- (PTADirectory *)createDirectory {
++ (PTADirectory *)createDirectoryFromFilesystem:(DBFilesystem *)filesystem
+                                       rootPath:(DBPath *)rootPath {
   PTADirectory *directory;
-  if (_filesystem.completedFirstSync) {
+  if (filesystem.completedFirstSync) {
     NSError *error;
     NSMutableArray *infos = [NSMutableArray array];
-    for (DBFileInfo *fileInfo in [_filesystem listFolder:_rootPath error:&error]) {
+    for (DBFileInfo *fileInfo in [filesystem listFolder:rootPath error:&error]) {
       NSAssert(!error, @"error: %@", error.localizedDescription);
       PTAFileInfo *info = [[PTAFileInfo alloc] initWithPath:fileInfo.path
                                                modifiedTime:fileInfo.modifiedTime];
@@ -302,7 +318,7 @@
   return directory;
 }
 
-- (PTAFile *)createFile:(DBFile *)file {
++ (PTAFile *)createFile:(DBFile *)file {
   NSString *content;
   NSError *error;
   if (file.status.cached) {
@@ -316,7 +332,8 @@
   if (!_directoryObservers.count) {
     return;
   }
-  PTADirectory *directory = [self createDirectory];
+  PTADirectory *directory = [self.class createDirectoryFromFilesystem:_filesystem
+                                                             rootPath:_rootPath];
   for (id<PTADirectoryObserver> observer in _directoryObservers) {
     [observer directoryDidChange:directory];
   }
@@ -327,30 +344,10 @@
   if (!fileObservers.count) {
     return;
   }
-  PTAFile *ptafile = [self createFile:file];
+  PTAFile *ptafile = [self.class createFile:file];
   for (id<PTAFileObserver> observer in fileObservers.objectEnumerator) {
     [observer fileDidChange:ptafile];
   }
-}
-
-- (void)initializeRetainEntryAndBeginObservingFile:(DBFile *)file {
-  _filesMap[file.info.path] = [[PTAFileRetainEntry alloc] initWithFile:file];
-  __weak id weakSelf = self;
-  __weak id weakFile = file;
-  [file addObserver:self block:^{
-    PTAFilesystemManager *strongSelf = weakSelf;
-    DBFile *strongFile = weakFile;
-    if (!strongSelf || !strongFile) {
-      return;
-    }
-    [strongSelf->_pathsNeedingDispatch addObject:strongFile.info.path];
-    dispatch_async(dispatch_get_main_queue(), ^{
-      if ([strongSelf->_pathsNeedingDispatch containsObject:strongFile.info.path]) {
-        [strongSelf->_pathsNeedingDispatch removeObject:strongFile.info.path];
-        [self publishFileChanged:strongFile];
-      }
-    });
-  }];
 }
 
 @end

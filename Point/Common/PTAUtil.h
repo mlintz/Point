@@ -33,6 +33,12 @@ extern BOOL PTAEqualBOOL(BOOL bool1, BOOL bool2);
 - (NSString *)pta_stringByTrimmingTerminatingCharactersInSet:(NSCharacterSet *)aSet;
 @end
 
+@interface NSArray (PTAUtil)
+
+- (NSArray *)pta_arrayWithMap:(id (^)(id input))map;
+
+@end
+
 @interface UIView (PTAUtil)
 - (UIImage *)snapshotCroppedToRect:(CGRect)rect;
 @end

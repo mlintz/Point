@@ -38,13 +38,11 @@
 - (void)removeFileObserver:(id<PTAFileObserver>)observer;
 
 // Creates file if it doesn't exist
-- (PTAFile *)openFileForPath:(DBPath *)path;
+- (PTAFile *)fileForPath:(DBPath *)path;
 
 // Asserts if file already exists. Client is responsible for releasing file.
 - (PTAFile *)createFileWithName:(NSString *)name;
 - (BOOL)containsFileWithName:(NSString *)name;
-
-- (void)releaseFileForPath:(DBPath *)path;
 - (void)updateFileForPath:(DBPath *)path;
 
 // File must be open and without an available newer version to write or append
