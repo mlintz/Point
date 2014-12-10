@@ -8,6 +8,12 @@
 
 @class PTAFileInfo;
 
+typedef NS_ENUM(NSInteger, PTAFileNewerVersionStatus) {
+  kPTAFileNewerVersionStatusNone,
+  kPTAFileNewerVersionStatusDownloading,
+  kPTAFileNewerVersionStatusCached,
+};
+
 // Immutable
 @interface PTAFile : NSObject<NSCopying>
 
@@ -16,7 +22,7 @@
 @property(nonatomic, readonly) BOOL cached;
 @property(nonatomic, readonly) DBFileState state;
 @property(nonatomic, readonly) float progress;
-@property(nonatomic, readonly) BOOL hasNewerVersion;
+@property(nonatomic, readonly) PTAFileNewerVersionStatus newerVersionStatus;
 @property(nonatomic, readonly) NSString *content;
 
 @property(nonatomic, readonly) NSString *nameWithEmojiStatus;

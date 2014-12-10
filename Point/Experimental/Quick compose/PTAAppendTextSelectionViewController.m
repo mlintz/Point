@@ -78,7 +78,7 @@ static const NSTimeInterval kToastInterval = 1;
   PTAAppendFileOperation *operation = [PTAAppendFileOperation operationWithAppendText:_appendText];
   PTAFile *file = [_manager fileForPath:path];
   NSAssert(file.cached, @"File isn't cached");
-  NSAssert(!file.hasNewerVersion, @"File has newer version");
+  NSAssert(file.newerVersionStatus == kPTAFileNewerVersionStatusNone, @"File has newer version");
   NSAssert(file.isOpen, @"File isn't open");
   file = [_manager writeString:[operation contentByApplyingOperationToContent:file.content]
                   toFileAtPath:file.info.path];

@@ -197,7 +197,7 @@
 
   if (!_file) {
     // Everything is hidden
-  } else if (_file.hasNewerVersion) {
+  } else if (_file.newerVersionStatus != kPTAFileNewerVersionStatusNone) {
     isNewVersionAlertVisible = YES;
   } else if (!_file.isOpen || !_file.cached) {
     showLoading = YES;

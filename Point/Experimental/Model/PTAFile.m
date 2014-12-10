@@ -14,8 +14,8 @@ static NSString *PTAEmojiForFile(PTAFile *file) {
   if (!file.isOpen) {
     return @"🔒";
   }
-  if (file.hasNewerVersion) {
-    return @"💥";
+  if (file.newerVersionStatus != kPTAFileNewerVersionStatusNone) {
+    return file.newerVersionStatus == kPTAFileNewerVersionStatusDownloading ? @"⬇️💥" : @"💥";
   }
   if (!file.cached && (file.state == DBFileStateIdle)) {
     return @"📭";
@@ -54,7 +54,12 @@ static NSString *PTAEmojiForFile(PTAFile *file) {
     _isOpen = file.open;
     _cached = file.status.cached;
     _state = file.status.state;
-    _hasNewerVersion = (file.newerStatus != nil);
+    if (!file.newerStatus) {
+      _newerVersionStatus = kPTAFileNewerVersionStatusNone;
+    } else {
+      _newerVersionStatus = file.newerStatus.cached
+          ? kPTAFileNewerVersionStatusCached : kPTAFileNewerVersionStatusDownloading;
+    }
     _content = [content copy];
     _progress = file.status.progress;
   }
