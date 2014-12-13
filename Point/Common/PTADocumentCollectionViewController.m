@@ -1,11 +1,3 @@
-//Next:
-// 1) show spinner while waiting for filesystem to sync
-// 2) on filesystem changed, grab new fileinfos, show or hide spinner, and reset tableview
-// 3) implement datasource methods
-//  - spinner in upper right if sync in progress?
-//  - icon in file cell if sync in progress?
-//  - add header icon showing download/upload state
-
 //
 //  PTADocumentCollectionViewController.m
 //  Point
@@ -15,6 +7,8 @@
 //
 
 #import "PTADocumentCollectionViewController.h"
+
+#import "PTADocumentCollectionCellController.h"
 
 static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 
@@ -54,6 +48,9 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
   PTAFilesystemManager *_filesystemManager;
   PTADirectory *_directory;
   PTADocumentCollectionSelection _selectionCallback;
+
+  NSMutableDictionary *_indexPathControllerMap;  // NSIndexPath / PTADocumentCollectionCellController
+  NSMutableArray *_controllerPool;  // PTADocumentCollectionCellController
 }
 
 - (instancetype)init {
@@ -76,6 +73,9 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
     _directory = _filesystemManager.directory;
 
     _selectionCallback = [callback copy];
+
+    _controllerPool = [NSMutableArray array];
+    _indexPathControllerMap = [NSMutableDictionary dictionary];
   }
   return self;
 }
@@ -112,27 +112,6 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
   [_tableView deselectRowAtIndexPath:path animated:NO];
 }
 
-//- (void)viewDidAppear:(BOOL)animated {
-//  [super viewDidAppear:animated];
-//  DBAccountManager *accountManager = [DBAccountManager sharedManager];
-//  if (!accountManager.linkedAccount) {
-//    [accountManager linkFromController:self];
-//  }
-//  DBAccount *account = [[DBAccountManager sharedManager] linkedAccount];
-//  if (!DBFilesystem.sharedFilesystem) {
-//    DBFilesystem *filesystem = [[DBFilesystem alloc] initWithAccount:account];
-//    [DBFilesystem setSharedFilesystem:filesystem];
-//    __weak id weakSelf = self;
-//    [DBFilesystem.sharedFilesystem addObserver:self block:^{
-//      [weakSelf updateView];
-//    }];
-//    [DBFilesystem.sharedFilesystem addObserver:self forPathAndChildren:DBPath.root block:^{
-//      [weakSelf updateView];
-//    }];
-//  }
-//  [self updateView];
-//}
-
 #pragma mark - UITableViewDataSource
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -143,11 +122,7 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-  PTATableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
-  PTAFileInfo *info = _directory.fileInfos[indexPath.row];
-  cell.textLabel.text = info.path.name;
-  cell.detailTextLabel.text = [_dateFormatter stringFromDate:info.modifiedTime];
-  return cell;
+  return [tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
 }
 
 #pragma mark - UITableViewDelegate
@@ -157,6 +132,32 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
   if (_selectionCallback) {
     _selectionCallback(self, fileInfo.path);
   }
+}
+
+- (void)tableView:(UITableView *)tableView
+      willDisplayCell:(UITableViewCell *)cell
+    forRowAtIndexPath:(NSIndexPath *)indexPath {
+  PTADocumentCollectionCellController *cellController = [_controllerPool lastObject];
+  [_controllerPool removeLastObject];
+  if (!cellController) {
+    cellController =
+        [[PTADocumentCollectionCellController alloc] initWithFilesystemManager:_filesystemManager
+                                                                 dateFormatter:_dateFormatter];
+  }
+  _indexPathControllerMap[indexPath] = cellController;
+  PTAFileInfo *info = _directory.fileInfos[indexPath.row];
+  [cellController setCell:cell withFilePath:info.path];
+}
+
+- (void)tableView:(UITableView *)tableView
+    didEndDisplayingCell:(UITableViewCell *)cell
+       forRowAtIndexPath:(NSIndexPath *)indexPath {
+  PTADocumentCollectionCellController *cellController = _indexPathControllerMap[indexPath];
+  NSAssert(cellController, @"No cellController for indexPath: %@. Map: %@",
+           indexPath, _indexPathControllerMap);
+  [cellController clearCell];
+  [_indexPathControllerMap removeObjectForKey:indexPath];
+  [_controllerPool addObject:cellController];
 }
 
 #pragma mark - PTADirectoryObserver

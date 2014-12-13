@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		321BA202F50E40C79FC3BAC5 /* libPods-Point.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7299634D4533460690EA4A3C /* libPods-Point.a */; };
+		C850BC9D1A3BE8D100E92903 /* PTADocumentCollectionCellController.m in Sources */ = {isa = PBXBuildFile; fileRef = C850BC9C1A3BE8D100E92903 /* PTADocumentCollectionCellController.m */; };
 		C87ACDFE196A4941008E8B50 /* PTAAuthenticationValues.m in Sources */ = {isa = PBXBuildFile; fileRef = C87ACDFD196A4941008E8B50 /* PTAAuthenticationValues.m */; };
 		C87ACE00196A4DA1008E8B50 /* credentials.json in Resources */ = {isa = PBXBuildFile; fileRef = C87ACDFF196A4DA1008E8B50 /* credentials.json */; };
 		C8A098C81A1049C80075560F /* PTAFile.m in Sources */ = {isa = PBXBuildFile; fileRef = C8A098C71A1049C80075560F /* PTAFile.m */; };
@@ -56,6 +57,8 @@
 		39A9E27E403CF9EECB7E6077 /* Pods-Point.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Point.release.xcconfig"; path = "Pods/Target Support Files/Pods-Point/Pods-Point.release.xcconfig"; sourceTree = "<group>"; };
 		6385CAB5A5035115A4B5D4F5 /* Pods-Point.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Point.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Point/Pods-Point.debug.xcconfig"; sourceTree = "<group>"; };
 		7299634D4533460690EA4A3C /* libPods-Point.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Point.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C850BC9B1A3BE8D100E92903 /* PTADocumentCollectionCellController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTADocumentCollectionCellController.h; path = Common/PTADocumentCollectionCellController.h; sourceTree = "<group>"; };
+		C850BC9C1A3BE8D100E92903 /* PTADocumentCollectionCellController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTADocumentCollectionCellController.m; path = Common/PTADocumentCollectionCellController.m; sourceTree = "<group>"; };
 		C87ACDFC196A4941008E8B50 /* PTAAuthenticationValues.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PTAAuthenticationValues.h; path = Experimental/Dropbox/PTAAuthenticationValues.h; sourceTree = "<group>"; };
 		C87ACDFD196A4941008E8B50 /* PTAAuthenticationValues.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PTAAuthenticationValues.m; path = Experimental/Dropbox/PTAAuthenticationValues.m; sourceTree = "<group>"; };
 		C87ACDFF196A4DA1008E8B50 /* credentials.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = credentials.json; sourceTree = SOURCE_ROOT; };
@@ -282,6 +285,8 @@
 				C8EB1E0C1A19284B0057C7F6 /* PTADocumentCollectionViewController.m */,
 				C8EB1E271A1AF17D0057C7F6 /* PTAUtil.h */,
 				C8EB1E281A1AF17D0057C7F6 /* PTAUtil.m */,
+				C850BC9B1A3BE8D100E92903 /* PTADocumentCollectionCellController.h */,
+				C850BC9C1A3BE8D100E92903 /* PTADocumentCollectionCellController.m */,
 			);
 			name = Common;
 			sourceTree = "<group>";
@@ -465,6 +470,7 @@
 				C8EB1E191A1928850057C7F6 /* PTAAppendTextSelectionViewController.m in Sources */,
 				C8A098CE1A104B790075560F /* PTAFileInfo.m in Sources */,
 				C8C0CD5C196A26C4001EF37F /* PTATextEditorViewController.m in Sources */,
+				C850BC9D1A3BE8D100E92903 /* PTADocumentCollectionCellController.m in Sources */,
 				C8EB1E1F1A1928B40057C7F6 /* PTAMainCollectionViewController.m in Sources */,
 				C8A098D11A1054C60075560F /* PTAFilesystemManager.m in Sources */,
 				C8FE23DF1A2C331000F52316 /* PTAAppendFileOperation.m in Sources */,
