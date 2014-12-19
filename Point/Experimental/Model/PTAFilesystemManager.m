@@ -129,7 +129,8 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
 }
 
 - (PTADirectory *)directory {
-  return [self.class createDirectoryFromFilesystem:_filesystem rootPath:_rootPath];
+  return [self.class createDirectoryWithFileMap:_openFileMap
+                             completedFirstSync:_filesystem.completedFirstSync];
 }
 
 - (void)addDirectoryObserver:(id<PTADirectoryObserver>)observer {
@@ -248,11 +249,11 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
                    updateFileMap:(NSMutableDictionary *)fileMap  // DBPath -> DBFile
                      addObserver:(PTAFilesystemManager *)observer
                            block:(void (^)(PTAFilesystemManager *filesystemManager, DBFile *file))observerBlock {
-  PTADirectory *newDirectory = [self createDirectoryFromFilesystem:filesystem rootPath:rootPath];
+  NSArray *fileInfos = [self fetchFileInfosFromFilesystem:filesystem rootPath:rootPath];
 
   // All sets are DBPath
   NSSet *oldPaths = [NSSet setWithArray:fileMap.allKeys];
-  NSSet *currentPaths = [NSSet setWithArray:[newDirectory.fileInfos pta_arrayWithMap:^DBPath *(PTAFileInfo *fileInfo) {
+  NSSet *currentPaths = [NSSet setWithArray:[fileInfos pta_arrayWithMap:^DBPath *(PTAFileInfo *fileInfo) {
     return fileInfo.path;
   }]];
 
@@ -306,9 +307,20 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
   return file;
 }
 
-+ (PTADirectory *)createDirectoryFromFilesystem:(DBFilesystem *)filesystem
-                                       rootPath:(DBPath *)rootPath {
-  PTADirectory *directory;
++ (PTADirectory *)createDirectoryWithFileMap:(NSDictionary *)fileMap  // DBPath -> DBFile
+                          completedFirstSync:(BOOL)completedFirstSync {
+  if (completedFirstSync) {
+    NSArray *files = fileMap.allValues;
+    NSArray *fileInfos = [files pta_arrayWithMap:^PTAFileInfo *(DBFile *file) {
+      return [[PTAFileInfo alloc] initWithPath:file.info.path modifiedTime:file.info.modifiedTime];
+    }];
+    return [[PTADirectory alloc] initWithFileInfos:fileInfos didCompleteFirstSync:YES];
+  }
+  return [[PTADirectory alloc] initWithFileInfos:@[] didCompleteFirstSync:NO];
+}
+
++ (NSArray *)fetchFileInfosFromFilesystem:(DBFilesystem *)filesystem
+                                 rootPath:(DBPath *)rootPath {
   if (filesystem.completedFirstSync) {
     NSError *error;
     NSMutableArray *infos = [NSMutableArray array];
@@ -318,13 +330,9 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
                                                modifiedTime:fileInfo.modifiedTime];
       [infos addObject:info];
     }
-    directory = [[PTADirectory alloc] initWithFileInfos:infos
-                                   didCompleteFirstSync:YES];
-  } else {
-    directory = [[PTADirectory alloc] initWithFileInfos:nil
-                                   didCompleteFirstSync:NO];
+    return infos;
   }
-  return directory;
+  return @[];
 }
 
 + (PTAFile *)createFile:(DBFile *)file {
@@ -341,8 +349,8 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
   if (!_directoryObservers.count) {
     return;
   }
-  PTADirectory *directory = [self.class createDirectoryFromFilesystem:_filesystem
-                                                             rootPath:_rootPath];
+  PTADirectory *directory = [self.class createDirectoryWithFileMap:_openFileMap
+                                                completedFirstSync:_filesystem.completedFirstSync];
   for (id<PTADirectoryObserver> observer in _directoryObservers) {
     [observer directoryDidChange:directory];
   }
