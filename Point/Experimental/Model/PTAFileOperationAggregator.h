@@ -16,6 +16,7 @@
 
 + (instancetype)aggregator;
 - (void)addOperation:(id<PTAFileOperation>)operation forFileAtPath:(DBPath *)path;
+- (BOOL)hasOperationForFileAtPath:(DBPath *)path;
 - (void)removeAllOperationForFileAtPath:(DBPath *)path;
 
 // Returns string if no operations are registered for the path.

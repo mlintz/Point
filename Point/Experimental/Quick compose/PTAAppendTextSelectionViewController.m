@@ -80,8 +80,7 @@ static const NSTimeInterval kToastInterval = 1;
   NSAssert(file.cached, @"File isn't cached");
   NSAssert(file.newerVersionStatus == kPTAFileNewerVersionStatusNone, @"File has newer version");
   NSAssert(file.isOpen, @"File isn't open");
-  file = [_manager writeString:[operation contentByApplyingOperationToContent:file.content]
-                  toFileAtPath:file.info.path];
+  file = [_manager applyOperation:operation toFileAtPath:path];
   [self.delegate appendTextControllerDidComplete:self withPath:path];
 }
 

@@ -20,33 +20,26 @@
 static NSString * const kInboxFileName = @"!!inbox.txt";
 static NSString * const kOperationAggregatorDefaultsKey = @"OperationAggregator";
 
+@interface PTAAppDelegate ()<PTAFilesystemManagerDelegate>
+
+@end
+
 @implementation PTAAppDelegate {
   PTAFileOperationAggregator *_fileOperationAggregator;
 }
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
   self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-  // Override point for customization after application launch.
-  self.window.backgroundColor = [UIColor whiteColor];
-
-  _fileOperationAggregator = [self.class deserializeOperationAggregatorFromDefaults:[NSUserDefaults standardUserDefaults]];
-
-  ////////
-  DBPath *path0 = [[DBPath alloc] initWithString:@"path0"];
-  DBPath *path1 = [[DBPath alloc] initWithString:@"path1"];
-  [_fileOperationAggregator addOperation:[PTAAppendFileOperation operationWithAppendText:@"foo"] forFileAtPath:path0];
-  [_fileOperationAggregator addOperation:[PTAAppendFileOperation operationWithAppendText:@"bar"] forFileAtPath:path0];
-  [_fileOperationAggregator addOperation:[PTAAppendFileOperation operationWithAppendText:@"baz"] forFileAtPath:path1];
-  
-//  xxx test by apply operations to strings
-  ////////
 
   DBAccountManager *accountManager = [[DBAccountManager alloc] initWithAppKey:[PTAAuthenticationValues key]
                                                                        secret:[PTAAuthenticationValues secret]];
   [DBAccountManager setSharedManager:accountManager];
+  _fileOperationAggregator = [self.class deserializeOperationAggregatorFromDefaults:[NSUserDefaults standardUserDefaults]];
   PTAFilesystemManager *manager = [[PTAFilesystemManager alloc] initWithAccountManager:accountManager
                                                                               rootPath:DBPath.root
-                                                                         inboxFilePath:[DBPath.root childPath:kInboxFileName]];
+                                                                         inboxFilePath:[DBPath.root childPath:kInboxFileName]
+                                                                   operationAggregator:_fileOperationAggregator];
+  manager.delegate = self;
   UIViewController *rootViewController = [[PTAMainCollectionViewController alloc] initWithFilesystemManager:manager];
   self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:rootViewController];
   [self.window makeKeyAndVisible];
@@ -95,6 +88,32 @@ static NSString * const kOperationAggregatorDefaultsKey = @"OperationAggregator"
   [[NSUserDefaults standardUserDefaults] setObject:serializedOperationAggregator
                                             forKey:kOperationAggregatorDefaultsKey];
   [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+#pragma mark - PTAFilesystemManagerDelegate
+
+- (BOOL)manager:(PTAFilesystemManager *)manager willPublishFileChange:(PTAFile *)file {
+  DBPath *path = file.info.path;
+  if (file.newerVersionStatus == kPTAFileNewerVersionStatusCached) {
+    [manager updateFileForPath:path];
+    return NO;
+  }
+  if (file.newerVersionStatus == kPTAFileNewerVersionStatusNone
+      && file.cached
+      && file.isOpen
+      && [_fileOperationAggregator hasOperationForFileAtPath:path]) {
+    NSString *newContent = [_fileOperationAggregator string:file.content
+                               withOperationsAppliedForPath:path];
+    [_fileOperationAggregator removeAllOperationForFileAtPath:path];
+    [manager writeString:newContent toFileAtPath:path];
+    return NO;
+  }
+  return YES;
+}
+
+- (void)manager:(PTAFilesystemManager *)manager applyInitialTransformToFile:(PTAFile *)file {
+  // TODO(mlintz): move into separate function.
+  [self manager:manager willPublishFileChange:file];
 }
 
 #pragma mark - Private

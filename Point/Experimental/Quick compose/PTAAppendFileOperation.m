@@ -16,7 +16,7 @@ static NSString * const kAppendTextKey = @"PTAAppendFileOperation.appendText";
 }
 
 + (instancetype)operationWithAppendText:(NSString *)appendText {
-  return [[self alloc] initWithAppendText:appendText];
+  return [[self alloc] initWithAppendText:[self.class formattedAppendString:appendText]];
 }
 
 - (instancetype)init {
@@ -29,7 +29,7 @@ static NSString * const kAppendTextKey = @"PTAAppendFileOperation.appendText";
   NSParameterAssert(appendText.length);
   self = [super init];
   if (self) {
-    _appendText = [[self.class formattedAppendString:appendText] copy];
+    _appendText = [appendText copy];
   }
   return self;
 }

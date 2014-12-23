@@ -10,6 +10,7 @@
 
 #import "DBFile+PTAUtil.h"
 #import "PTAFileOperation.h"
+#import "PTAFileOperationAggregator.h"
 
 typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, DBFile *file);
 
@@ -41,6 +42,7 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
   NSMutableDictionary *_openFileMap;  // DBPath -> DBFile
   NSMutableSet *_pathsNeedingDispatch;
   BOOL _filesystemNeedsDispatch;
+  PTAFileOperationAggregator *_aggregator;
 }
 
 - (instancetype)init {
@@ -50,16 +52,19 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
 
 - (instancetype)initWithAccountManager:(DBAccountManager *)accountManager
                               rootPath:(DBPath *)rootPath
-                         inboxFilePath:(DBPath *)inboxFilePath {
+                         inboxFilePath:(DBPath *)inboxFilePath
+                   operationAggregator:(PTAFileOperationAggregator *)aggregator {
   NSParameterAssert(accountManager);
   NSParameterAssert(rootPath);
   NSParameterAssert(inboxFilePath);
+  NSParameterAssert(aggregator);
   self = [super init];
   if (self) {
     _rootPath = rootPath;
     _filesystem = accountManager.linkedAccount
         ? [[DBFilesystem alloc] initWithAccount:accountManager.linkedAccount] : nil;
     _openFileMap = [NSMutableDictionary dictionary];
+    _aggregator = aggregator;
 
     __weak id weakSelf = self;
     __weak id weakAccountManager = accountManager;
@@ -128,6 +133,16 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
                                    block:_fileChangedCallback];
   }
   return self;
+}
+
+- (void)setDelegate:(id<PTAFilesystemManagerDelegate>)delegate {
+  _delegate = delegate;
+  if (_delegate) {
+    for (DBFile *file in _openFileMap.objectEnumerator) {
+      PTAFile *ptafile = [self.class createFile:file];
+      [_delegate manager:self applyInitialTransformToFile:ptafile];
+    }
+  }
 }
 
 - (PTADirectory *)directory {
@@ -223,31 +238,28 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
   return [self.class createFile:file];
 }
 
-- (PTAFile *)appendString:(NSString *)string toFileAtPath:(DBPath *)path {
-  DBFile *file = [self performFileOperation:^BOOL(DBFile *file, DBError *__autoreleasing *error) {
-    NSAssert(!file.newerStatus, @"Attempting to append string to file when newer version is available.");
-    return [file appendString:string error:error];
-  } forPath:path];
-  return [self.class createFile:file];
-}
-
 - (void)updateFileForPath:(DBPath *)path {
   [self performFileOperation:^BOOL(DBFile *file, DBError *__autoreleasing *error) {
     return [file update:error];
   } forPath:path];
 }
 
-- (void)appendTextToInboxFile:(NSString *)text {
-  [self appendString:text toFileAtPath:_inboxFilePath];
+- (PTAFile *)applyOperation:(id<PTAFileOperation>)operation toFileAtPath:(DBPath *)path {
+  NSParameterAssert(operation);
+  DBFile *file = [self performFileOperation:^BOOL(DBFile *file, DBError *__autoreleasing *error) {
+    if (file.newerStatus) {
+      [_aggregator addOperation:operation forFileAtPath:path];
+      return YES;
+    }
+    PTAFile *ptafile = [self.class createFile:file];
+    NSString *newContent = [operation contentByApplyingOperationToContent:ptafile.content];
+    return [file writeString:newContent error:error];
+  } forPath:path];
+  return [self.class createFile:file];
 }
 
 - (void)applyOperationToInboxFile:(id<PTAFileOperation>)operation {
-  NSParameterAssert(operation);
-  PTAFile *inboxFile = [self fileForPath:_inboxFilePath];
-  NSString *fileContent = inboxFile.content;
-  NSAssert(fileContent.length > 0, @"Failsafe against reading empty contents from improperly opened file.");
-  NSString *newContent = [operation contentByApplyingOperationToContent:fileContent];
-  [self writeString:newContent toFileAtPath:inboxFile.info.path];
+  [self applyOperation:operation toFileAtPath:_inboxFilePath];
 }
 
 #pragma mark - Private
@@ -366,10 +378,15 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
 
 - (void)publishFileChanged:(DBFile *)file {
   NSHashTable *fileObservers = _fileObservers[file.info.path];
-  if (!fileObservers.count) {
+  if (!fileObservers.count && !self.delegate) {
     return;
   }
   PTAFile *ptafile = [self.class createFile:file];
+  BOOL shouldPublish = self.delegate
+      ? [self.delegate manager:self willPublishFileChange:ptafile] : YES;
+  if (!shouldPublish) {
+    return;
+  }
   for (id<PTAFileObserver> observer in fileObservers.objectEnumerator) {
     [observer fileDidChange:ptafile];
   }

@@ -51,6 +51,15 @@ NSString * const kOperationMapKey = @"PTAFileOperationAggregator.operationMap";
   [operationQueue addObject:[operation copy]];
 }
 
+- (BOOL)hasOperationForFileAtPath:(DBPath *)path {
+  NSParameterAssert(path);
+  AssertOnExpectedQueue;
+  
+  NSString *key = [self.class keyFromPath:path];
+  NSMutableArray *operationQueue = _operationMap[key];
+  return operationQueue.count > 0;
+}
+
 - (void)removeAllOperationForFileAtPath:(DBPath *)path {
   AssertOnExpectedQueue;
   NSString *key = [self.class keyFromPath:path];
