@@ -8,7 +8,7 @@
 
 @class PTAFile;
 
-@protocol PTAFileOperation <NSObject>
+@protocol PTAFileOperation<NSObject, NSCoding, NSCopying>
 
 - (NSString *)contentByApplyingOperationToContent:(NSString *)fileContent;
 

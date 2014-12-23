@@ -9,19 +9,29 @@
 #import "PTAAppendFileOperation.h"
 
 static NSString *kAppendPrefix = @" - ";
+static NSString * const kAppendTextKey = @"PTAAppendFileOperation.appendText";
 
 @implementation PTAAppendFileOperation {
   NSString *_appendText;
 }
 
 + (instancetype)operationWithAppendText:(NSString *)appendText {
+  return [[self alloc] initWithAppendText:appendText];
+}
+
+- (instancetype)init {
+  [self doesNotRecognizeSelector:_cmd];
+  return nil;
+}
+
+- (instancetype)initWithAppendText:(NSString *)appendText {
   NSParameterAssert(appendText);
   NSParameterAssert(appendText.length);
-  PTAAppendFileOperation *operation = [[self alloc] init];
-  if (operation) {
-    operation->_appendText = [[self formattedAppendString:appendText] copy];
+  self = [super init];
+  if (self) {
+    _appendText = [[self.class formattedAppendString:appendText] copy];
   }
-  return operation;
+  return self;
 }
 
 - (NSString *)contentByApplyingOperationToContent:(NSString *)fileContent {
@@ -41,6 +51,24 @@ static NSString *kAppendPrefix = @" - ";
   NSString *newlineTrimmedString =
       [appendPrefixTrimmedString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
   return [NSString stringWithFormat:@"\n%@%@", kAppendPrefix, newlineTrimmedString];
+}
+
+#pragma mark - NSCopying
+
+- (id)copyWithZone:(NSZone *)zone {
+  return self;
+}
+
+#pragma mark - NSCoding
+
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+  NSString *appendText = [aDecoder decodeObjectOfClass:[NSString class]
+                                                forKey:kAppendTextKey];
+  return [self initWithAppendText:appendText];
+}
+
+- (void)encodeWithCoder:(NSCoder *)aCoder {
+  [aCoder encodeObject:_appendText forKey:kAppendTextKey];
 }
 
 @end

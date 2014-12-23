@@ -10,7 +10,11 @@
 
 #import "PTADocumentCollectionCellController.h"
 
-static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
+static NSString * const kReuseIdentifier = @"PTACollectionViewReuseIdentifier";
+static NSComparator const kFileInfoComparator = ^NSComparisonResult(PTAFileInfo *fileInfo1,
+                                                                    PTAFileInfo *fileInfo2) {
+  return [fileInfo1.path.stringValue compare:fileInfo2.path.stringValue];
+};
 
 @interface NSArray (DocumentCollection)
 - (NSArray *)pta_filteredArrayWithPathExtension:(NSString *)pathExtension;
@@ -46,7 +50,8 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
   NSDateFormatter *_dateFormatter;
 
   PTAFilesystemManager *_filesystemManager;
-  PTADirectory *_directory;
+  BOOL _completedFirstSync;
+  NSArray *_fileInfos;  // PTAFileInfo
   PTADocumentCollectionSelection _selectionCallback;
 
   NSMutableDictionary *_indexPathControllerMap;  // NSIndexPath / PTADocumentCollectionCellController
@@ -70,7 +75,9 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
     _filesystemManager = filesystemManager;
   
     [filesystemManager addDirectoryObserver:self];
-    _directory = _filesystemManager.directory;
+    PTADirectory *directory = _filesystemManager.directory;
+    _completedFirstSync = directory.didCompleteFirstSync;
+    _fileInfos = [directory.fileInfos sortedArrayUsingComparator:kFileInfoComparator];
 
     _selectionCallback = [callback copy];
 
@@ -86,7 +93,7 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
   _tableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStylePlain];
   _tableView.dataSource = self;
   _tableView.delegate = self;
-  [_tableView registerClass:[PTATableViewCell class] forCellReuseIdentifier:reuseIdentifier];
+  [_tableView registerClass:[PTATableViewCell class] forCellReuseIdentifier:kReuseIdentifier];
   [self.view addSubview:_tableView];
  
   _spinnerView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
@@ -116,19 +123,19 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
   if (section == 0) {
-    return _directory.didCompleteFirstSync ? _directory.fileInfos.count : 0;
+    return _completedFirstSync ? _fileInfos.count : 0;
   }
   return 0;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-  return [tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
+  return [tableView dequeueReusableCellWithIdentifier:kReuseIdentifier];
 }
 
 #pragma mark - UITableViewDelegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-  PTAFileInfo *fileInfo = _directory.fileInfos[indexPath.row];
+  PTAFileInfo *fileInfo = _fileInfos[indexPath.row];
   if (_selectionCallback) {
     _selectionCallback(self, fileInfo.path);
   }
@@ -145,7 +152,7 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
                                                                  dateFormatter:_dateFormatter];
   }
   _indexPathControllerMap[indexPath] = cellController;
-  PTAFileInfo *info = _directory.fileInfos[indexPath.row];
+  PTAFileInfo *info = _fileInfos[indexPath.row];
   [cellController setCell:cell withFilePath:info.path];
 }
 
@@ -163,7 +170,8 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 #pragma mark - PTADirectoryObserver
 
 - (void)directoryDidChange:(PTADirectory *)directory {
-  _directory = directory;
+  _completedFirstSync = directory.didCompleteFirstSync;
+  _fileInfos = [directory.fileInfos sortedArrayUsingComparator:kFileInfoComparator];
   [self updateSpinnerVisibility];
   [_tableView reloadData];
 }
@@ -171,7 +179,7 @@ static NSString *reuseIdentifier = @"PTACollectionViewReuseIdentifier";
 #pragma mark - Private
 
 - (void)updateSpinnerVisibility {
-  if (_directory.didCompleteFirstSync) {
+  if (_completedFirstSync) {
     [_spinnerView stopAnimating];
   } else {
     [_spinnerView startAnimating];

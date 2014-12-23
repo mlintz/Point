@@ -8,36 +8,8 @@
 
 #import "PTAFile.h"
 
+#import "DBFile+PTAUtil.h"
 #import "PTAFileInfo.h"
-
-static NSString *PTAEmojiForFile(PTAFile *file) {
-  if (!file.isOpen) {
-    return @"🔒";
-  }
-  if (file.newerVersionStatus != kPTAFileNewerVersionStatusNone) {
-    return file.newerVersionStatus == kPTAFileNewerVersionStatusDownloading ? @"⬇️💥" : @"💥";
-  }
-  if (!file.cached && (file.state == DBFileStateIdle)) {
-    return @"📭";
-  }
-  if (file.state != DBFileStateIdle) {
-    NSString *direction = (file.state) == DBFileStateUploading ? @"⬆️" : @"⬇️";
-    NSString *progressEmoji;
-    if (file.progress == 0) {
-      progressEmoji = @"🌑";
-    } else if (file.progress < 0.33f) {
-      progressEmoji = @"🌒";
-    } else if (file.progress < 0.66f) {
-      progressEmoji = @"🌓";
-    } else if (file.progress < 1) {
-      progressEmoji = @"🌔";
-    } else {
-      progressEmoji = @"🌕";
-    }
-    return [NSString stringWithFormat:@"%@%@", direction, progressEmoji];
-  }
-  return @"✅";
-}
 
 @implementation PTAFile
 
@@ -62,12 +34,9 @@ static NSString *PTAEmojiForFile(PTAFile *file) {
     }
     _content = [content copy];
     _progress = file.status.progress;
+    _nameWithEmojiStatus = [file pta_nameWithEmojiStatus];
   }
   return self;
-}
-
-- (NSString *)nameWithEmojiStatus {
-  return [NSString stringWithFormat:@"%@%@", PTAEmojiForFile(self), self.info.path.name];
 }
 
 - (id)copyWithZone:(NSZone *)zone {

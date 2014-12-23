@@ -13,15 +13,33 @@
 #import "PTAAuthenticationValues.h"
 #import "PTAMainCollectionViewController.h"
 #import "PTAFilesystemManager.h"
+#import "PTAFileOperationAggregator.h"
 
-static NSString *kInboxFileName = @"!!inbox.txt";
+#import "PTAAppendFileOperation.h"
 
-@implementation PTAAppDelegate
+static NSString * const kInboxFileName = @"!!inbox.txt";
+static NSString * const kOperationAggregatorDefaultsKey = @"OperationAggregator";
+
+@implementation PTAAppDelegate {
+  PTAFileOperationAggregator *_fileOperationAggregator;
+}
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
   self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
   // Override point for customization after application launch.
   self.window.backgroundColor = [UIColor whiteColor];
+
+  _fileOperationAggregator = [self.class deserializeOperationAggregatorFromDefaults:[NSUserDefaults standardUserDefaults]];
+
+  ////////
+  DBPath *path0 = [[DBPath alloc] initWithString:@"path0"];
+  DBPath *path1 = [[DBPath alloc] initWithString:@"path1"];
+  [_fileOperationAggregator addOperation:[PTAAppendFileOperation operationWithAppendText:@"foo"] forFileAtPath:path0];
+  [_fileOperationAggregator addOperation:[PTAAppendFileOperation operationWithAppendText:@"bar"] forFileAtPath:path0];
+  [_fileOperationAggregator addOperation:[PTAAppendFileOperation operationWithAppendText:@"baz"] forFileAtPath:path1];
+  
+//  xxx test by apply operations to strings
+  ////////
 
   DBAccountManager *accountManager = [[DBAccountManager alloc] initWithAppKey:[PTAAuthenticationValues key]
                                                                        secret:[PTAAuthenticationValues secret]];
@@ -71,9 +89,23 @@ static NSString *kInboxFileName = @"!!inbox.txt";
   // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
 }
 
-- (void)applicationWillTerminate:(UIApplication *)application
-{
+- (void)applicationWillTerminate:(UIApplication *)application {
   // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+  NSData *serializedOperationAggregator = [NSKeyedArchiver archivedDataWithRootObject:_fileOperationAggregator];
+  [[NSUserDefaults standardUserDefaults] setObject:serializedOperationAggregator
+                                            forKey:kOperationAggregatorDefaultsKey];
+  [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
+#pragma mark - Private
+
++ (PTAFileOperationAggregator *)deserializeOperationAggregatorFromDefaults:(NSUserDefaults *)defaults {
+  NSData *serializedOperationAggregator = [defaults dataForKey:kOperationAggregatorDefaultsKey];
+  PTAFileOperationAggregator *aggregator = serializedOperationAggregator
+      ? [NSKeyedUnarchiver unarchiveObjectWithData:serializedOperationAggregator]
+      : [PTAFileOperationAggregator aggregator];
+  aggregator.queue = [NSOperationQueue mainQueue];
+  return aggregator;
 }
 
 @end

@@ -36,8 +36,8 @@
   [_manager removeFileObserver:self];
   _cell = cell;
   [_manager addFileObserver:self forPath:path];
-  PTAFile *file = [_manager fileForPath:path];
-  [self.class updateCell:_cell withFile:file dateFormatter:_dateFormatter];
+  NSString *name = [_manager filenameWithEmojiStatusForPath:path];
+  [self.class updateCell:_cell withName:name];
 }
 
 - (void)clearCell {
@@ -48,16 +48,14 @@
 #pragma mark PTAFileObserver
 
 - (void)fileDidChange:(PTAFile *)file {
-  [self.class updateCell:_cell withFile:file dateFormatter:_dateFormatter];
+  [self.class updateCell:_cell withName:file.nameWithEmojiStatus];
 }
 
 #pragma mark Private
 
 + (void)updateCell:(UITableViewCell *)cell
-          withFile:(PTAFile *)file
-     dateFormatter:(NSDateFormatter *)formatter {
-  cell.textLabel.text = [file nameWithEmojiStatus];
-  cell.detailTextLabel.text = [formatter stringFromDate:file.info.modifiedTime];
+          withName:(NSString *)name {
+  cell.textLabel.text = name;
 }
 
 @end

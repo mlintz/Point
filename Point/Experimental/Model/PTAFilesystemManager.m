@@ -7,6 +7,8 @@
 //
 
 #import "PTAFilesystemManager.h"
+
+#import "DBFile+PTAUtil.h"
 #import "PTAFileOperation.h"
 
 typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, DBFile *file);
@@ -182,6 +184,12 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
     NSAssert(!error, @"Error creating file, %@", file);
   }
   return [self.class createFile:file];
+}
+
+- (NSString *)filenameWithEmojiStatusForPath:(DBPath *)path {
+  NSParameterAssert(path);
+  DBFile *file = _openFileMap[path];
+  return [file pta_nameWithEmojiStatus];
 }
 
 - (PTAFile *)createFileWithName:(NSString *)name {
