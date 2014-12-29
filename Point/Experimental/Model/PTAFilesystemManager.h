@@ -59,7 +59,6 @@
 // Returns nil if it doesn't exist
 - (NSString *)filenameWithEmojiStatusForPath:(DBPath *)path;
 
-// Asserts if file already exists. Client is responsible for releasing file.
 - (PTAFile *)createFileWithName:(NSString *)name;
 - (BOOL)containsFileWithName:(NSString *)name;
 - (void)updateFileForPath:(DBPath *)path;
