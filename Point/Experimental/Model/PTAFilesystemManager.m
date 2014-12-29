@@ -316,14 +316,6 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
   DBError *error;
   BOOL success = operation(file, &error);
   NSAssert(success && !error, @"Error writing file: %@", error.localizedDescription);
-  
-  [_pathsNeedingDispatch addObject:path];
-  dispatch_async(dispatch_get_main_queue(), ^{
-    if ([self->_pathsNeedingDispatch containsObject:path]) {
-      [self->_pathsNeedingDispatch removeObject:path];
-      [self publishFileChanged:file];
-    }
-  });
   return file;
 }
 
