@@ -6,6 +6,8 @@
 //  Copyright (c) 2014 Mikey Lintz. All rights reserved.
 //
 
+#define PTA_INIT_UNAVAILABLE __attribute__((unavailable("initializer unavailable")))
+
 extern const NSRange PTANullRange;  // length = 0, location = NSNotFound
 
 extern CGPoint PTAPointInvert(CGPoint point);
