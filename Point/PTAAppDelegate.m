@@ -13,9 +13,6 @@
 #import "PTAAuthenticationValues.h"
 #import "PTAMainCollectionViewController.h"
 #import "PTAFilesystemManager.h"
-#import "PTAFileOperationAggregator.h"
-
-#import "PTAAppendFileOperation.h"
 
 static NSString * const kInboxFileName = @"!!inbox.txt";
 static NSString * const kOperationAggregatorDefaultsKey = @"OperationAggregator";
@@ -24,9 +21,7 @@ static NSString * const kOperationAggregatorDefaultsKey = @"OperationAggregator"
 
 @end
 
-@implementation PTAAppDelegate {
-  PTAFileOperationAggregator *_fileOperationAggregator;
-}
+@implementation PTAAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
   self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
@@ -34,11 +29,11 @@ static NSString * const kOperationAggregatorDefaultsKey = @"OperationAggregator"
   DBAccountManager *accountManager = [[DBAccountManager alloc] initWithAppKey:[PTAAuthenticationValues key]
                                                                        secret:[PTAAuthenticationValues secret]];
   [DBAccountManager setSharedManager:accountManager];
-  _fileOperationAggregator = [self.class deserializeOperationAggregatorFromDefaults:[NSUserDefaults standardUserDefaults]];
+  NSOperationQueue *backgroundQueue = [[NSOperationQueue alloc] init];
   PTAFilesystemManager *manager = [[PTAFilesystemManager alloc] initWithAccountManager:accountManager
                                                                               rootPath:DBPath.root
                                                                          inboxFilePath:[DBPath.root childPath:kInboxFileName]
-                                                                   operationAggregator:_fileOperationAggregator];
+                                                                        operationQueue:backgroundQueue];
   manager.delegate = self;
   UIViewController *rootViewController = [[PTAMainCollectionViewController alloc] initWithFilesystemManager:manager];
   self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:rootViewController];
@@ -84,10 +79,6 @@ static NSString * const kOperationAggregatorDefaultsKey = @"OperationAggregator"
 
 - (void)applicationWillTerminate:(UIApplication *)application {
   // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
-  NSData *serializedOperationAggregator = [NSKeyedArchiver archivedDataWithRootObject:_fileOperationAggregator];
-  [[NSUserDefaults standardUserDefaults] setObject:serializedOperationAggregator
-                                            forKey:kOperationAggregatorDefaultsKey];
-  [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
 #pragma mark - PTAFilesystemManagerDelegate
@@ -98,33 +89,12 @@ static NSString * const kOperationAggregatorDefaultsKey = @"OperationAggregator"
     [manager updateFileForPath:path];
     return NO;
   }
-  if (file.newerVersionStatus == kPTAFileNewerVersionStatusNone
-      && file.cached
-      && file.isOpen
-      && [_fileOperationAggregator hasOperationForFileAtPath:path]) {
-    NSString *newContent = [_fileOperationAggregator string:file.content
-                               withOperationsAppliedForPath:path];
-    [_fileOperationAggregator removeAllOperationForFileAtPath:path];
-    [manager writeString:newContent toFileAtPath:path];
-    return NO;
-  }
   return YES;
 }
 
 - (void)manager:(PTAFilesystemManager *)manager applyInitialTransformToFile:(PTAFile *)file {
   // TODO(mlintz): move into separate function.
   [self manager:manager willPublishFileChange:file];
-}
-
-#pragma mark - Private
-
-+ (PTAFileOperationAggregator *)deserializeOperationAggregatorFromDefaults:(NSUserDefaults *)defaults {
-  NSData *serializedOperationAggregator = [defaults dataForKey:kOperationAggregatorDefaultsKey];
-  PTAFileOperationAggregator *aggregator = serializedOperationAggregator
-      ? [NSKeyedUnarchiver unarchiveObjectWithData:serializedOperationAggregator]
-      : [PTAFileOperationAggregator aggregator];
-  aggregator.queue = [NSOperationQueue mainQueue];
-  return aggregator;
 }
 
 @end

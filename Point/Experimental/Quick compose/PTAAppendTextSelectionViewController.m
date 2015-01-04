@@ -8,7 +8,6 @@
 
 #import "PTAAppendTextSelectionViewController.h"
 
-#import "PTAAppendFileOperation.h"
 #import "PTADocumentCollectionViewController.h"
 #import "UIView+Toast.h"
 
@@ -75,9 +74,10 @@ static const NSTimeInterval kToastInterval = 1;
                                                                 duration:kToastInterval
                                                                 position:CSToastPositionCenter];
 
-  PTAAppendFileOperation *operation = [PTAAppendFileOperation operationWithAppendText:_appendText];
-  [_manager applyOperation:operation toFileAtPath:path];
-  [self.delegate appendTextControllerDidComplete:self withPath:path];
+  [_manager appendString:_appendText toFileAtPath:path].thenOnMain(^id(id result) {
+    [self.delegate appendTextControllerDidComplete:self withPath:path];
+    return result;
+  }, nil);
 }
 
 - (void)didSelectCreateFileWithName:(NSString *)name {
@@ -86,16 +86,32 @@ static const NSTimeInterval kToastInterval = 1;
   if ([_manager containsFileWithName:filename]) {
     message = [NSString stringWithFormat:@"File %@ already exists", filename];
   } else {
-    PTAFile *file = [_manager createFileWithName:filename];
-    NSString *initialContent = [NSString stringWithFormat:@"// %@\n\n# Next tasks\n\n# Inbox",
-                                                       [name capitalizedStringWithLocale:nil]];
-    PTAAppendFileOperation *operation = [PTAAppendFileOperation operationWithAppendText:_appendText];
-    
-    
-    [_manager writeString:[operation contentByApplyingOperationToContent:initialContent]
-             toFileAtPath:file.info.path];
     message = [NSString stringWithFormat:@"Created %@", filename];
-    [self.delegate appendTextControllerDidComplete:self withPath:file.info.path];
+
+    __weak id weakSelf = self;
+    [_manager createFileWithName:filename].thenOnMain(^id(PTAFile *file) {
+      PTAAppendTextSelectionViewController *strongSelf = weakSelf;
+      if (!strongSelf) {
+        return nil;
+      }
+      NSString *initialContent = [NSString stringWithFormat:@"// %@\n\n# Next tasks\n\n# Inbox",
+                                  [name capitalizedStringWithLocale:nil]];
+      return [strongSelf->_manager writeString:initialContent
+                                  toFileAtPath:file.info.path];
+    }, nil)
+    .thenOnMain(^id(PTAFile *file) {
+      PTAAppendTextSelectionViewController *strongSelf = weakSelf;
+      if (!strongSelf) {
+        return nil;
+      }
+      return [strongSelf->_manager appendString:strongSelf->_appendText
+                                   toFileAtPath:file.info.path];
+    }, nil)
+    .thenOnMain(^id(PTAFile *file) {
+      PTAAppendTextSelectionViewController *strongSelf = weakSelf;
+      [strongSelf.delegate appendTextControllerDidComplete:strongSelf withPath:file.info.path];
+      return file;
+    }, nil);
   }
   [self.view.window makeToast:message duration:kToastInterval position:CSToastPositionCenter];
 }

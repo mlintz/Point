@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 Mikey Lintz. All rights reserved.
 //
 
+static NSString *kAppendPrefix = @" - ";
 const NSRange PTANullRange = { .length = 0, .location = NSNotFound };
 
 CGPoint PTAPointInvert(CGPoint point) {
@@ -93,11 +94,23 @@ BOOL PTAEqualBOOL(BOOL bool1, BOOL bool2) {
   while (maxIndex > 0) {
     unichar c = [self characterAtIndex:maxIndex];
     if (![aSet characterIsMember:c]) {
-      return [self substringToIndex:maxIndex];
+      return [self substringToIndex:maxIndex + 1];
     }
     maxIndex--;
   }
   return @"";
+}
+
+- (NSString *)pta_formattedAppendString {
+  NSString *appendPrefixTrimmedString = self;
+  while ([appendPrefixTrimmedString hasPrefix:kAppendPrefix]) {
+    appendPrefixTrimmedString = appendPrefixTrimmedString.length > kAppendPrefix.length
+        ? [appendPrefixTrimmedString substringFromIndex:[kAppendPrefix length]]
+        : @"";
+  }
+  NSString *newlineTrimmedString =
+      [appendPrefixTrimmedString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+  return [NSString stringWithFormat:@"\n%@%@", kAppendPrefix, newlineTrimmedString];
 }
 
 @end

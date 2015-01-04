@@ -15,6 +15,7 @@
   #import <Foundation/Foundation.h>
 #endif
 
+#import <RXPromise/RXPromise.h>
 #import <Dropbox/Dropbox.h>
 #import "PTAUtil.h"
 #import "PTAFile.h"

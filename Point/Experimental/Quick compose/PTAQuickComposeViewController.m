@@ -10,7 +10,6 @@
 #import "PTAComposeBarButtonItem.h"
 #import "PTAQuickComposeView.h"
 #import "PTAAppendTextSelectionViewController.h"
-#import "PTAAppendFileOperation.h"
 #import "UIView+Toast.h"
 
 static const NSTimeInterval kToastDuration = 0.5;
@@ -49,8 +48,7 @@ static const NSTimeInterval kToastDuration = 0.5;
   if (!text.length) {
     return;
   }
-  PTAAppendFileOperation *operation = [PTAAppendFileOperation operationWithAppendText:text];
-  [_filesystemManager applyOperationToInboxFile:operation];
+  [_filesystemManager appendStringToInboxFile:text];
   [self.view.window makeToast:@"Added to Inbox" duration:kToastDuration position:CSToastPositionCenter];
   [self.navigationController dismissViewControllerAnimated:YES completion:nil];
 }

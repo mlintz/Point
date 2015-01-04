@@ -9,7 +9,6 @@
 @class PTADirectory;
 @class PTAFile;
 @class PTAFilesystemManager;
-@class PTAFileOperationAggregator;
 @protocol PTAFileOperation;
 
 @protocol PTAFileObserver <NSObject>
@@ -42,7 +41,7 @@
 - (instancetype)initWithAccountManager:(DBAccountManager *)accountManager
                               rootPath:(DBPath *)rootPath
                          inboxFilePath:(DBPath *)inboxFilePath
-                   operationAggregator:(PTAFileOperationAggregator *)aggregator;
+                        operationQueue:(NSOperationQueue *)queue;
 
 // add/remove parameters must be non-nil
 - (void)addDirectoryObserver:(id<PTADirectoryObserver>)observer;
@@ -54,22 +53,18 @@
 - (void)removeFileObserver:(id<PTAFileObserver>)observer;
 
 // Creates file if it doesn't exist
-- (PTAFile *)fileForPath:(DBPath *)path;
+- (RXPromise *)fileForPath:(DBPath *)path;  // PTAFile
 
 // Returns nil if it doesn't exist
 - (NSString *)filenameWithEmojiStatusForPath:(DBPath *)path;
 
-- (PTAFile *)createFileWithName:(NSString *)name;
+- (RXPromise *)createFileWithName:(NSString *)name;  // PTAFile
 - (BOOL)containsFileWithName:(NSString *)name;
 - (void)updateFileForPath:(DBPath *)path;
 
 // File must be open and without an available newer version to write
-- (PTAFile *)writeString:(NSString *)string toFileAtPath:(DBPath *)path;
-
-// Can be applied to file with a newer version available
-- (PTAFile *)applyOperation:(id<PTAFileOperation>)operation toFileAtPath:(DBPath *)path;
-
-// Inbox file doesn't need to be opened to append
-- (void)applyOperationToInboxFile:(id<PTAFileOperation>)operation;
+- (RXPromise *)writeString:(NSString *)string toFileAtPath:(DBPath *)path;  // PTAFile
+- (RXPromise *)appendString:(NSString *)string toFileAtPath:(DBPath *)path;  // PTAFile
+- (RXPromise *)appendStringToInboxFile:(NSString *)string;  // PTAFile
 
 @end

@@ -33,6 +33,7 @@ extern BOOL PTAEqualBOOL(BOOL bool1, BOOL bool2);
 - (NSString *)pta_stringBySquashingWhitespace:(NSString *)replacementString;
 - (BOOL)pta_terminatesInNewline;
 - (NSString *)pta_stringByTrimmingTerminatingCharactersInSet:(NSCharacterSet *)aSet;
+- (NSString *)pta_formattedAppendString;
 @end
 
 @interface NSArray (PTAUtil)

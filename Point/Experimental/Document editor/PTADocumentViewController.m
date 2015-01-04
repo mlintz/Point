@@ -13,19 +13,25 @@
 #import "UIView+Toast.h"
 
 @interface PTADocumentViewController ()<PTADocumentViewDelegate, PTAFileObserver, PTAAppendTextSelectionDelegate>
+@property(nonatomic, strong) PTAFile *file;
 @end
 
 @implementation PTADocumentViewController {
   PTADocumentView *_documentView;
 
   DBPath *_path;
-  PTAFile *_file;
   PTAFilesystemManager *_filesystemManager;
   UIAlertController *_newVersionAlertController;
   NSRange _selectedCharacterRange;
-  
+
+  RXPromise *_currentPromise;
+
   UIBarButtonItem *_composeBarButton;
   UIBarButtonItem *_sendToBarButton;
+}
+
+- (void)dealloc {
+  [_currentPromise cancel];
 }
 
 - (instancetype)init {
@@ -75,8 +81,16 @@
 - (void)viewDidAppear:(BOOL)animated {
   [super viewDidAppear:animated];
   [_filesystemManager addFileObserver:self forPath:_path];
-  _file = [_filesystemManager fileForPath:_path];
-  [self updateView];
+
+  [_currentPromise cancel];
+  _currentPromise = [_filesystemManager fileForPath:_path];
+  __weak id weakSelf = self;
+  _currentPromise.thenOnMain(^id(PTAFile *file) {
+    PTADocumentViewController *strongSelf = weakSelf;
+    strongSelf.file = file;
+    [strongSelf updateView];
+    return self;
+  }, nil);
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -95,9 +109,17 @@
 #pragma mark - PTADocumentViewDelegate
 
 - (void)documentView:(PTADocumentView *)documentView didChangeText:(NSString *)text {
-  _file = [_filesystemManager writeString:text toFileAtPath:_path];
-  _selectedCharacterRange = PTANullRange;
-  [self updateView];
+  [_currentPromise cancel];
+
+  _currentPromise = [_filesystemManager writeString:text toFileAtPath:_path];
+  __weak id weakSelf = self;
+  _currentPromise.thenOnMain(^PTAFile *(PTAFile *file) {
+    PTADocumentViewController *strongSelf = weakSelf;
+    strongSelf.file = file;
+    strongSelf->_selectedCharacterRange = PTANullRange;
+    [strongSelf updateView];
+    return file;
+  }, nil);
 }
 
 - (void)documentViewDidTapToCancelSelection:(PTADocumentView *)documentView {
@@ -128,9 +150,17 @@
   NSString *newContent = [textWithSelectedTextRemoved stringByReplacingCharactersInRange:NSMakeRange(location, 0)
                                                                               withString:newText];
 
-  _file = [_filesystemManager writeString:newContent toFileAtPath:_path];
-  _selectedCharacterRange = PTANullRange;
-  [self updateView];
+  [_currentPromise cancel];
+  _currentPromise = [_filesystemManager writeString:newContent toFileAtPath:_path];
+  
+  __weak id weakSelf = self;
+  _currentPromise.thenOnMain(^PTAFile *(PTAFile *file) {
+    PTADocumentViewController *strongSelf = weakSelf;
+    strongSelf.file = file;
+    strongSelf->_selectedCharacterRange = PTANullRange;
+    [strongSelf updateView];
+    return file;
+  }, nil);
 }
 
 #pragma mark - PTAAppendTextSelectionDelegate
@@ -151,9 +181,16 @@
                                                                         withString:@""];
 
   // Remove text from existing file
-  _file = [_filesystemManager writeString:remainderText toFileAtPath:_file.info.path];
-
-  [self updateView];
+  [_currentPromise cancel];
+  _currentPromise = [_filesystemManager writeString:remainderText toFileAtPath:_file.info.path];
+  
+  __weak id weakSelf = self;
+  _currentPromise.thenOnMain(^PTAFile *(PTAFile *file) {
+    PTADocumentViewController *strongSelf = weakSelf;
+    strongSelf.file = file;
+    [strongSelf updateView];
+    return file;
+  }, nil);
 }
 
 - (void)appendTextControllerDidCancel:(PTAAppendTextSelectionViewController *)controller {

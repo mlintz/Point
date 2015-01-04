@@ -9,11 +9,8 @@
 #import "PTAFilesystemManager.h"
 
 #import "DBFile+PTAUtil.h"
-#import "PTAFileOperation.h"
-#import "PTAFileOperationAggregator.h"
 
 typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, DBFile *file);
-
 
 @interface NSArray (DocumentCollection)
 - (NSArray *)pta_filteredArrayWithPathExtension:(NSString *)pathExtension;
@@ -30,6 +27,8 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
 @end
 
 @implementation PTAFilesystemManager {
+  NSOperationQueue *_operationQueue;
+
   DBFilesystem *_filesystem;
   DBPath *_rootPath;
   DBPath *_inboxFilePath;
@@ -42,7 +41,6 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
   NSMutableDictionary *_openFileMap;  // DBPath -> DBFile
   NSMutableSet *_pathsNeedingDispatch;
   BOOL _filesystemNeedsDispatch;
-  PTAFileOperationAggregator *_aggregator;
 }
 
 - (instancetype)init {
@@ -53,18 +51,18 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
 - (instancetype)initWithAccountManager:(DBAccountManager *)accountManager
                               rootPath:(DBPath *)rootPath
                          inboxFilePath:(DBPath *)inboxFilePath
-                   operationAggregator:(PTAFileOperationAggregator *)aggregator {
+                        operationQueue:(NSOperationQueue *)queue {
   NSParameterAssert(accountManager);
   NSParameterAssert(rootPath);
   NSParameterAssert(inboxFilePath);
-  NSParameterAssert(aggregator);
+  NSParameterAssert(queue);
   self = [super init];
   if (self) {
+    _operationQueue = queue;
     _rootPath = rootPath;
     _filesystem = accountManager.linkedAccount
         ? [[DBFilesystem alloc] initWithAccount:accountManager.linkedAccount] : nil;
     _openFileMap = [NSMutableDictionary dictionary];
-    _aggregator = aggregator;
 
     __weak id weakSelf = self;
     __weak id weakAccountManager = accountManager;
@@ -139,6 +137,7 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
   _delegate = delegate;
   if (_delegate) {
     for (DBFile *file in _openFileMap.objectEnumerator) {
+      // Initial setup can be done on main queue.
       PTAFile *ptafile = [self.class createFile:file];
       [_delegate manager:self applyInitialTransformToFile:ptafile];
     }
@@ -189,7 +188,7 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
   }
 }
 
-- (PTAFile *)fileForPath:(DBPath *)path {
+- (RXPromise *)fileForPath:(DBPath *)path {
   NSParameterAssert(path);
   NSAssert(_filesystem, @"Can't open path %@ with nil filesystem", path);
   DBFile *file = _openFileMap[path];
@@ -198,7 +197,13 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
     file = [_filesystem createFile:path error:&error];
     NSAssert(!error, @"Error creating file, %@", file);
   }
-  return [self.class createFile:file];
+
+  RXPromise *promise = [[RXPromise alloc] init];
+  [_operationQueue addOperationWithBlock:^{
+    PTAFile *ptaFile = [self.class createFile:file];
+    [promise resolveWithResult:ptaFile];
+  }];
+  return promise;
 }
 
 - (NSString *)filenameWithEmojiStatusForPath:(DBPath *)path {
@@ -207,7 +212,7 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
   return [file pta_nameWithEmojiStatus];
 }
 
-- (PTAFile *)createFileWithName:(NSString *)name {
+- (RXPromise *)createFileWithName:(NSString *)name {
   NSParameterAssert(name);
   NSParameterAssert(name.length);
   NSAssert(_filesystem, @"Can't create file %@ with nil filesystem", name);
@@ -222,7 +227,13 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
                            addObserver:self
                                  block:_fileChangedCallback];
   NSAssert(!error && file, @"Error creating file: %@", error.localizedDescription);
-  return [self.class createFile:_openFileMap[path]];
+
+  RXPromise *promise = [[RXPromise alloc] init];
+  [_operationQueue addOperationWithBlock:^{
+    PTAFile *ptaFile = [self.class createFile:_openFileMap[path]];
+    [promise resolveWithResult:ptaFile];
+  }];
+  return promise;
 }
 
 - (BOOL)containsFileWithName:(NSString *)name {
@@ -230,36 +241,56 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
   return _openFileMap[path] != nil;
 }
 
-- (PTAFile *)writeString:(NSString *)string toFileAtPath:(DBPath *)path {
-  DBFile *file = [self performFileOperation:^BOOL(DBFile *file, DBError *__autoreleasing *error) {
-    NSAssert(!file.newerStatus, @"Attempting to write string to file when newer version is available.");
-    return [file writeString:string error:error];
-  } forPath:path];
-  return [self.class createFile:file];
-}
-
 - (void)updateFileForPath:(DBPath *)path {
-  [self performFileOperation:^BOOL(DBFile *file, DBError *__autoreleasing *error) {
-    return [file update:error];
+  [self performFileOperation:^(DBFile *file) {
+    DBError *error;
+    [file update:&error];
+    NSAssert(!error, @"%@", error.localizedDescription);
   } forPath:path];
 }
 
-- (PTAFile *)applyOperation:(id<PTAFileOperation>)operation toFileAtPath:(DBPath *)path {
-  NSParameterAssert(operation);
-  DBFile *file = [self performFileOperation:^BOOL(DBFile *file, DBError *__autoreleasing *error) {
-    if (file.newerStatus) {
-      [_aggregator addOperation:operation forFileAtPath:path];
-      return YES;
-    }
-    PTAFile *ptafile = [self.class createFile:file];
-    NSString *newContent = [operation contentByApplyingOperationToContent:ptafile.content];
-    return [file writeString:newContent error:error];
+- (RXPromise *)writeString:(NSString *)string toFileAtPath:(DBPath *)path {
+  RXPromise *promise = [[RXPromise alloc] init];
+  NSOperationQueue *queue = _operationQueue;
+  [self performFileOperation:^(DBFile *file) {
+    [queue addOperationWithBlock:^{
+      NSAssert(!file.newerStatus, @"Attempting to write string to file when newer version is available.");
+      DBError *error;
+      [file writeString:string error:&error];
+      NSAssert(!error, nil);
+      PTAFile *ptafile = [PTAFilesystemManager createFile:file];
+      [promise resolveWithResult:ptafile];
+    }];
   } forPath:path];
-  return [self.class createFile:file];
+  return promise;
 }
 
-- (void)applyOperationToInboxFile:(id<PTAFileOperation>)operation {
-  [self applyOperation:operation toFileAtPath:_inboxFilePath];
+- (RXPromise *)appendString:(NSString *)appendString toFileAtPath:(DBPath *)path {
+  RXPromise *promise = [[RXPromise alloc] init];
+  NSOperationQueue *queue = _operationQueue;
+  [self performFileOperation:^(DBFile *file) {
+    [queue addOperationWithBlock:^{
+      NSAssert(!file.newerStatus, @"Attempting to write string to file when newer version is available.");
+      NSAssert(file.status.cached, nil);
+      DBError *error;
+      NSString *content = [file readString:&error];
+      NSAssert(!error, @"%@", error.localizedDescription);
+      NSString *trimmedContent = [content pta_terminatesInNewline]
+          ? [content pta_stringByTrimmingTerminatingCharactersInSet:[NSCharacterSet newlineCharacterSet]]
+          : content;
+      NSString *composedContent =
+          [trimmedContent stringByAppendingString:[appendString pta_formattedAppendString]];
+      [file writeString:composedContent error:&error];
+      NSAssert(!error, nil);
+      PTAFile *ptafile = [PTAFilesystemManager createFile:file];
+      [promise resolveWithResult:ptafile];
+    }];
+  } forPath:path];
+  return promise;
+}
+
+- (RXPromise *)appendStringToInboxFile:(NSString *)string {
+  return [self appendString:string toFileAtPath:_inboxFilePath];
 }
 
 #pragma mark - Private
@@ -307,16 +338,13 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
   }
 }
 
-- (DBFile *)performFileOperation:(BOOL (^)(DBFile *file, DBError **error))operation
+- (void)performFileOperation:(void (^)(DBFile *file))operation
                          forPath:(DBPath *)path {
   NSParameterAssert(path);
   DBFile *file = _openFileMap[path];
   NSAssert(file, @"No open file at path %@. Paths: %@", path, _openFileMap.allKeys);
   NSAssert(file.open, @"File must be open to write to it.");
-  DBError *error;
-  BOOL success = operation(file, &error);
-  NSAssert(success && !error, @"Error writing file: %@", error.localizedDescription);
-  return file;
+  operation(file);
 }
 
 + (PTADirectory *)createDirectoryWithFileMap:(NSDictionary *)fileMap  // DBPath -> DBFile
