@@ -102,15 +102,22 @@ BOOL PTAEqualBOOL(BOOL bool1, BOOL bool2) {
 }
 
 - (NSString *)pta_formattedAppendString {
-  NSString *appendPrefixTrimmedString = self;
-  while ([appendPrefixTrimmedString hasPrefix:kAppendPrefix]) {
-    appendPrefixTrimmedString = appendPrefixTrimmedString.length > kAppendPrefix.length
-        ? [appendPrefixTrimmedString substringFromIndex:[kAppendPrefix length]]
-        : @"";
-  }
-  NSString *newlineTrimmedString =
-      [appendPrefixTrimmedString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-  return [NSString stringWithFormat:@"\n%@%@", kAppendPrefix, newlineTrimmedString];
+  NSCharacterSet *whitespace = [NSCharacterSet whitespaceCharacterSet];
+  NSMutableArray *lines = [NSMutableArray array];
+  [self enumerateLinesUsingBlock:^(NSString *line, BOOL *stop) {
+    NSString *appendPrefixTrimmedString = line;
+    while ([appendPrefixTrimmedString hasPrefix:kAppendPrefix]) {
+      appendPrefixTrimmedString = appendPrefixTrimmedString.length > kAppendPrefix.length
+          ? [appendPrefixTrimmedString substringFromIndex:[kAppendPrefix length]]
+          : @"";
+    }
+    NSString *whitespaceTrimmedString =
+        [appendPrefixTrimmedString stringByTrimmingCharactersInSet:whitespace];
+    if (whitespaceTrimmedString.length > 0) {
+      [lines addObject:[NSString stringWithFormat:@"%@%@", kAppendPrefix, whitespaceTrimmedString]];
+    }
+  }];
+  return lines.count ? [@"\n" stringByAppendingString:[lines componentsJoinedByString:@"\n"]] : @"";
 }
 
 @end
