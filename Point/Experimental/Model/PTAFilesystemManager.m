@@ -365,6 +365,9 @@ typedef void (^PTAFileChangedCallback)(PTAFilesystemManager *filesystemManager, 
     NSError *error;
     NSMutableArray *infos = [NSMutableArray array];
     for (DBFileInfo *fileInfo in [filesystem listFolder:rootPath error:&error]) {
+      if (fileInfo.isFolder) {
+        continue;
+      }
       NSAssert(!error, @"error: %@", error.localizedDescription);
       PTAFileInfo *info = [[PTAFileInfo alloc] initWithPath:fileInfo.path
                                                modifiedTime:fileInfo.modifiedTime];
