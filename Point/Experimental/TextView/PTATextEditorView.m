@@ -8,7 +8,7 @@
 
 #import "PTATextEditorView.h"
 
-#import <POP/POP.h>
+#import "POP.h"
 
 static NSString *const kFontName = @"CourierNewPSMT";
 static CGFloat const kFontSize = 16.f;
