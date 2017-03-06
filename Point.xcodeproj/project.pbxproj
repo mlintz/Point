@@ -370,7 +370,7 @@
 				ORGANIZATIONNAME = "Mikey Lintz";
 				TargetAttributes = {
 					C8C42F52196745A80041645E = {
-						DevelopmentTeam = 29YRS7U3K6;
+						DevelopmentTeam = LP2BQNDLQW;
 					};
 					C8C42F6D196745A80041645E = {
 						TestTargetID = C8C42F52196745A80041645E;
@@ -599,6 +599,8 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEVELOPMENT_TEAM = LP2BQNDLQW;
+				ENABLE_BITCODE = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Point/Point-Prefix.pch";
 				INFOPLIST_FILE = "Point/Point-Info.plist";
@@ -616,6 +618,8 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEVELOPMENT_TEAM = LP2BQNDLQW;
+				ENABLE_BITCODE = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Point/Point-Prefix.pch";
 				INFOPLIST_FILE = "Point/Point-Info.plist";
